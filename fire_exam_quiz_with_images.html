@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消防考試 互動模擬測驗 (附原圖版)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; color: #333; line-height: 1.6; padding: 20px; margin: 0; }
+        .container { max-width: 850px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 120px; }
+        h1 { text-align: center; color: #1e3c72; border-bottom: 3px solid #2a5298; padding-bottom: 15px; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #7f8c8d; font-size: 0.95em; margin-bottom: 20px; }
+        .db-info { text-align: right; font-size: 0.85em; color: #95a5a6; margin-bottom: 20px; font-weight: bold; }
+
+        .question-block { margin-bottom: 30px; padding: 25px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #fafbfc; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .question-block:hover { border-color: #b0bec5; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .question-title { font-weight: bold; margin-bottom: 15px; font-size: 1.15em; color: #2c3e50; }
+
+        .question-img { max-width: 100%; height: auto; max-height: 400px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd; object-fit: contain; }
+
+        .options label { display: block; margin-bottom: 10px; cursor: pointer; padding: 12px 15px; border-radius: 6px; background: #fff; border: 2px solid #eaeded; transition: all 0.2s; font-size: 1.05em; }
+        .options label:hover { background-color: #f4f6f7; border-color: #bdc3c7; }
+        input[type="radio"] { margin-right: 12px; transform: scale(1.3); cursor: pointer; accent-color: #1e3c72; }
+
+        .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .incorrect { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; text-decoration: line-through; }
+
+        .controls { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 15px; border-top: 1px solid #e1e8ed; text-align: center; box-shadow: 0 -3px 15px rgba(0,0,0,0.08); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 15px; z-index: 1000; }
+        button { padding: 12px 25px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; color: #fff; font-weight: 600; transition: transform 0.1s, opacity 0.2s, filter 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+        button:active { transform: translateY(2px); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        #randomBtn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        #randomBtn:hover { filter: brightness(1.1); }
+        #resetBtn { background-color: #7f8c8d; }
+        #resetBtn:hover { background-color: #636e72; }
+        #submitBtn { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        #submitBtn:hover { filter: brightness(1.1); }
+
+        #scoreDisplay { display: inline-block; padding: 10px 20px; font-size: 1.25em; font-weight: bold; color: #2c3e50; border-radius: 8px; background: #ecf0f1; min-width: 160px; text-align: center; }
+        .explanation { display: none; margin-top: 15px; padding: 15px; background-color: #e8f4f8; border-left: 5px solid #3498db; font-size: 1em; border-radius: 0 6px 6px 0; color: #1a5276; line-height: 1.5; }
+        #newCustomBtn {background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); /* Example orange gradient */}
+        #newCustomBtn:hover {filter: brightness(1.1);
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📝 消防考試 原圖互動模擬測驗</h1>
+    <div class="subtitle">完美還原試卷圖形、圖表及物理情境</div>
+    <div class="db-info" id="dbInfo"></div>
+
+    <form id="quizForm"></form>
+</div>
+
+<div class="controls">
+    <button type="button" id="randomBtn" onclick="generateNewQuiz()">🎲 隨機 20 題抽卷</button>
+    <button type="button" id="resetBtn" onclick="resetQuiz()">🔄 重置本卷</button>
+    <button type="button" id="submitBtn" onclick="checkAnswers()">✅ 提交批改</button>
+    <button type="button" id="newCustomBtn" onclick="newButtonAction()">Home</button>
+    <div id="scoreDisplay">等待開始...</div>
+</div>
+
+<script>
+    // System automatically injected question data
+    const allQuestions = [
+    // === YOUR ORIGINAL FIRE EXAM QUESTIONS (kept exactly as before) ===
+    {"q": "38. The two beakers are filled with water... 大燒杯水滾後繼續加熱，小燒杯的水會點？", "options": ["A. The water in the small beaker won't boil over", "B. The water in the small beaker will boil over", "C. The water in the small beaker will diminish", "D. The water in the big beaker won't diminish"], "ans": 0, "exp": "小燒杯的水溫會達100度，但因為與外圍大燒杯沒有溫差，無法繼續吸收熱量來轉化狀態，因此不會沸騰（Boil over）。", "img": ""},
+    {"q": "一個熱水杯一個凍水杯，有一隻杯壁有水珠 係邊隻杯同係咩現象 (凍/熱)水杯璧(內/外)，(熔/液)化現象", "options": ["凍水杯(內)", "凍水杯(外)", "熱水杯(內)", "熱水杯(外)"], "ans": 1, "exp": "凍水杯外壁冷凝現象。", "img": ""},
+    {"q": "肥佬瘦仔互推 邊個受力較大？", "options": ["肥佬", "瘦仔", "一樣大", "視乎誰先推"], "ans": 2, "exp": "牛頓第三定律，作用力與反作用力一樣大。", "img": ""},
+    {"q": "企係雪地上太陽射落 影子咩顏色？", "options": ["純黑色", "白色", "偏藍色", "灰色"], "ans": 2, "exp": "雪地反射天空藍光，影子偏藍色。", "img": ""},
+    {"q": "將罐啤酒放入邊種箱會最快冷卻？", "options": ["淨冰", "冰+水", "冰加鹽", "冰加糖"], "ans": 2, "exp": "冰加鹽降低冰點，吸熱更快。", "img": ""},
+    {"q": "以下邊個係減少摩擦力既例子？", "options": ["拉緊縫衣機上既帶", "係鉗上增加坑紋", "係鞋上增加坑紋", "係原子筆筆頭上配上滑珠"], "ans": 3, "exp": "滑珠減少摩擦力。", "img": ""},
+    {"q": "邊個慳唔到力？", "options": ["拔釘", "升旗", "提重物（重物連下面繩中段）", "其他"], "ans": 2, "exp": "D 提重物是動滑輪但此配置機械利益=1，不能省力。", "img": ""},
+    {"q": "山上有兩個傷者，兩隊消防人員各自出動拯救傷者，已知道成功拯救每位傷者的機率是50%，成功拯救一位傷者不會影響拯救另一位傷者的成功率，問兩位傷者都被成功拯救的機率是多少？", "options": ["25%", "50%", "75%", "100%"], "ans": 0, "exp": "獨立事件 0.5×0.5=25%。", "img": ""},
+    {"q": "X同Y係兩個細過50嘅正整數，在方程（X 加Y）/（X-Y）中，x的數值是多少會令結果數值最細 。有a.1 b.2 c.48 d.49", "options": ["1", "2", "48", "49"], "ans": 2, "exp": "X=48 (Y=1) 令 (X+Y)/(X-Y) 最接近1。", "img": ""},
+    {"q": "男女加埋11人 抽1男1女的概率是x 現加1男落來 再抽出來抽1男1女概率增加25% 原來有多少男？", "options": ["1", "2", "3", "4"], "ans": 1, "exp": "原本男有2。", "img": ""},
+
+    // === PILOT OFFICER FULL TEST - ALL 136 QUESTIONS WITH ORIGINAL FULL TEXT (NO SHORT FORM) ===
+
+    // ==================== SECTION 1: VERBAL REASONING (35 questions - FULL original text + scenario) ====================
+    {"q": "A leaves home for work at about 08:00 in the morning. He often meets B on the way about 15 minutes after he sets off. It takes about 7 minutes for A to walk from home to the bus stop, where he takes bus to work. The bus trip is around 35 minutes. The place where B lives is not far away from A’s bus station, about 10 minutes driving time.. B spends 5 minutes waiting for the bus while A spends 3 minutes. B goes to work by bus as well, which takes about 40 minutes, and he gets on the bus right outside his home.\n\n1. If A starts work at 09:00, how much time is left for him to walk to the office after he gets off the bus?", "options": ["A. 10 minutes", "B. 15 minutes", "C. 17 minutes", "D. 20 minutes"], "ans": 1, "exp": "B. 15 minutes (official key).", "img": ""},
+    {"q": "A leaves home for work at about 08:00 in the morning. He often meets B on the way about 15 minutes after he sets off. It takes about 7 minutes for A to walk from home to the bus stop, where he takes bus to work. The bus trip is around 35 minutes. The place where B lives is not far away from A’s bus station, about 10 minutes driving time.. B spends 5 minutes waiting for the bus while A spends 3 minutes. B goes to work by bus as well, which takes about 40 minutes, and he gets on the bus right outside his home.\n\n2. If A starts work at 09:00, and the bus stop is right outside his company, how long can he talk with B without being late for work?", "options": ["A. 45 minutes", "B. 30 minutes", "C. 15 minutes", "D. 10 minutes"], "ans": 0, "exp": "A. 45 minutes.", "img": ""},
+    {"q": "A leaves home for work at about 08:00 in the morning. He often meets B on the way about 15 minutes after he sets off. It takes about 7 minutes for A to walk from home to the bus stop, where he takes bus to work. The bus trip is around 35 minutes. The place where B lives is not far away from A’s bus station, about 10 minutes driving time.. B spends 5 minutes waiting for the bus while A spends 3 minutes. B goes to work by bus as well, which takes about 40 minutes, and he gets on the bus right outside his home.\n\n3. If B starts work at 09:15, how much time is left for him to walk to the company after he gets off the bus?", "options": ["A. 30 minutes", "B. 25 minutes", "C. 20 minutes", "D. 15 minutes"], "ans": 0, "exp": "A. 30 minutes.", "img": ""},
+    {"q": "A leaves home for work at about 08:00 in the morning. He often meets B on the way about 15 minutes after he sets off. It takes about 7 minutes for A to walk from home to the bus stop, where he takes bus to work. The bus trip is around 35 minutes. The place where B lives is not far away from A’s bus station, about 10 minutes driving time.. B spends 5 minutes waiting for the bus while A spends 3 minutes. B goes to work by bus as well, which takes about 40 minutes, and he gets on the bus right outside his home.\n\n4. A gets off the bus at:", "options": ["A. 08:35", "B. 08:40", "C. 08:45", "D. 08:50"], "ans": 2, "exp": "C. 08:45.", "img": ""},
+    {"q": "A leaves home for work at about 08:00 in the morning. He often meets B on the way about 15 minutes after he sets off. It takes about 7 minutes for A to walk from home to the bus stop, where he takes bus to work. The bus trip is around 35 minutes. The place where B lives is not far away from A’s bus station, about 10 minutes driving time.. B spends 5 minutes waiting for the bus while A spends 3 minutes. B goes to work by bus as well, which takes about 40 minutes, and he gets on the bus right outside his home.\n\n5. B gets off the bus at:", "options": ["A. 08:40", "B. 08:45", "C. 08:50", "D. 08:55"], "ans": 1, "exp": "B. 08:45.", "img": ""},
+    {"q": "A leaves home for work at about 08:00 in the morning. He often meets B on the way about 15 minutes after he sets off. It takes about 7 minutes for A to walk from home to the bus stop, where he takes bus to work. The bus trip is around 35 minutes. The place where B lives is not far away from A’s bus station, about 10 minutes driving time.. B spends 5 minutes waiting for the bus while A spends 3 minutes. B goes to work by bus as well, which takes about 40 minutes, and he gets on the bus right outside his home.\n\n6. If B takes 10 minutes to walk to the company after he gets off the bus, how long does he takes to get to the company from his home?", "options": ["A. 1 hour", "B. 55 minutes", "C. 50 minutes", "D. 45 minutes"], "ans": 1, "exp": "B. 55 minutes.", "img": ""},
+    {"q": "A leaves home for work at about 08:00 in the morning. He often meets B on the way about 15 minutes after he sets off. It takes about 7 minutes for A to walk from home to the bus stop, where he takes bus to work. The bus trip is around 35 minutes. The place where B lives is not far away from A’s bus station, about 10 minutes driving time.. B spends 5 minutes waiting for the bus while A spends 3 minutes. B goes to work by bus as well, which takes about 40 minutes, and he gets on the bus right outside his home.\n\n7. When does A meet B everyday?", "options": ["A. 08:10", "B. 08:12", "C. 08:14", "D. 08:15"], "ans": 3, "exp": "D. 08:15.", "img": ""},
+    {"q": "In a marathon, Kelly kept ahead of the other runners. Ray maintained a very close distance from behind Eric. Anthony was ahead of Dada and he felt anxious since there were two other runners ahead of him after Fanny. An accident occurred during the race. Kelly slowed down and fell behind Ray due to a cramp on her shank. Eric overtook Fanny when she slacked off. Anthony also surpassed the one ahead of him. At the finishing line, only the 3rd and the 4th runners exchanged their positions while others remained the same as in the course of the race.\n\n8. The first and second runners to pass the finishing line were", "options": ["A. Fanny and Ray", "B. Fanny and Anthony", "C. Eric and Anthony", "D. Eric and Fanny"], "ans": 3, "exp": "D. Eric and Fanny.", "img": ""},
+    {"q": "In a marathon, Kelly kept ahead of the other runners. Ray maintained a very close distance from behind Eric. Anthony was ahead of Dada and he felt anxious since there were two other runners ahead of him after Fanny. An accident occurred during the race. Kelly slowed down and fell behind Ray due to a cramp on her shank. Eric overtook Fanny when she slacked off. Anthony also surpassed the one ahead of him. At the finishing line, only the 3rd and the 4th runners exchanged their positions while others remained the same as in the course of the race.\n\n9. Who was/ were the last to pass the finishing line?", "options": ["A. Kelly", "B. Dada", "C. Kelly and Dada", "D. Cannot be determined"], "ans": 2, "exp": "C. Kelly and Dada.", "img": ""},
+    {"q": "In a marathon, Kelly kept ahead of the other runners. Ray maintained a very close distance from behind Eric. Anthony was ahead of Dada and he felt anxious since there were two other runners ahead of him after Fanny. An accident occurred during the race. Kelly slowed down and fell behind Ray due to a cramp on her shank. Eric overtook Fanny when she slacked off. Anthony also surpassed the one ahead of him. At the finishing line, only the 3rd and the 4th runners exchanged their positions while others remained the same as in the course of the race.\n\n10. Whose position remained the same from the very beginning to the end of the race?", "options": ["A. Ray", "B. Fanny", "C. Anthony", "D. Eric"], "ans": 1, "exp": "B. Fanny.", "img": ""},
+    {"q": "In a bakery on a remote island, due to its climate, flour can only be kept for 3 days, sugar for 4 days, specially made spice and vegetable oil can be kept for 2 days and 3 days respectively. The flour seller delivers flour to the bakery every Tuesday or Saturday; sugar seller delivers every Wednesday and the seller of spice and vegetable oil delivers every Monday. All 4 kinds of materials are necessary to make a special cake that can only be kept 24 hours.\n\n11. How many days are there in a week which flour is available?", "options": ["A. 0", "B. 2", "C. 4", "D. 6"], "ans": 3, "exp": "D. 6.", "img": ""},
+    {"q": "In a bakery on a remote island, due to its climate, flour can only be kept for 3 days, sugar for 4 days, specially made spice and vegetable oil can be kept for 2 days and 3 days respectively. The flour seller delivers flour to the bakery every Tuesday or Saturday; sugar seller delivers every Wednesday and the seller of spice and vegetable oil delivers every Monday. All 4 kinds of materials are necessary to make a special cake that can only be kept 24 hours.\n\n12. How many days are there in a week which the cake could be made?", "options": ["A. 0", "B. 2", "C. 4", "D. 6"], "ans": 0, "exp": "A. 0.", "img": ""},
+    {"q": "In a bakery on a remote island, due to its climate, flour can only be kept for 3 days, sugar for 4 days, specially made spice and vegetable oil can be kept for 2 days and 3 days respectively. The flour seller delivers flour to the bakery every Tuesday or Saturday; sugar seller delivers every Wednesday and the seller of spice and vegetable oil delivers every Monday. All 4 kinds of materials are necessary to make a special cake that can only be kept 24 hours.\n\n13. Which day will the cake be available for sale?", "options": ["A. Monday", "B. Tuesday", "C. Wednesday", "D. Unavailable for sale"], "ans": 3, "exp": "D. Unavailable for sale.", "img": ""},
+    {"q": "In a bakery on a remote island, due to its climate, flour can only be kept for 3 days, sugar for 4 days, specially made spice and vegetable oil can be kept for 2 days and 3 days respectively. The flour seller delivers flour to the bakery every Tuesday or Saturday; sugar seller delivers every Wednesday and the seller of spice and vegetable oil delivers every Monday. All 4 kinds of materials are necessary to make a special cake that can only be kept 24 hours.\n\n14. If the bakery develops a new type of spice to replace the former one, and this spice can be kept for one week, which day is suitable to make the newly developed cake?", "options": ["A. Monday", "B. Tuesday", "C. Wednesday", "D. Cannot be manufactured"], "ans": 2, "exp": "C. Wednesday.", "img": ""},
+    {"q": "In a bakery on a remote island, due to its climate, flour can only be kept for 3 days, sugar for 4 days, specially made spice and vegetable oil can be kept for 2 days and 3 days respectively. The flour seller delivers flour to the bakery every Tuesday or Saturday; sugar seller delivers every Wednesday and the seller of spice and vegetable oil delivers every Monday. All 4 kinds of materials are necessary to make a special cake that can only be kept 24 hours.\n\n15. When will the newly developed cake be available for sale?", "options": ["A. Monday and Tuesday", "B. Tuesday and Wednesday", "C. Wednesday and Thursday", "D. Unavailable for sale"], "ans": 2, "exp": "C. Wednesday and Thursday.", "img": ""},
+    {"q": "At a staff meeting, seven executives of the company sat in a row on the stage and their titles were represented by alphabets from A to G. The most senior one was represented by F and sat in the middle. The closer to F, the more senior the title was. The executives seated on the right of F were more senior than the executive who were seated on the left of F. The surnames of the seven executives were Chan, Lee, Cheung, Wong, Ho, Au and Chow. (1) Au occupied the 4th seat to the left of A and A occupied the 2nd seat to the right of Cheung. (2) Chan and A were seated next to Lee. (3) Chow occupied the 2nd seat to the left of Wong. (4) E, B and C were seated together from left to right in this order.\n\n16. Who was C?", "options": ["A. Chan", "B. Lee", "C. Cheung", "D. Wong"], "ans": 2, "exp": "C. Cheung.", "img": ""},
+    {"q": "At a staff meeting, seven executives of the company sat in a row on the stage and their titles were represented by alphabets from A to G. The most senior one was represented by F and sat in the middle. The closer to F, the more senior the title was. The executives seated on the right of F were more senior than the executive who were seated on the left of F. The surnames of the seven executives were Chan, Lee, Cheung, Wong, Ho, Au and Chow. (1) Au occupied the 4th seat to the left of A and A occupied the 2nd seat to the right of Cheung. (2) Chan and A were seated next to Lee. (3) Chow occupied the 2nd seat to the left of Wong. (4) E, B and C were seated together from left to right in this order.\n\n17. Who was the 5th most senior?", "options": ["A. Au; title C", "B. Chow; title B", "C. Ho; title D", "D. Chan; title E"], "ans": 1, "exp": "B. Chow; title B.", "img": ""},
+    {"q": "At a staff meeting, seven executives of the company sat in a row on the stage and their titles were represented by alphabets from A to G. The most senior one was represented by F and sat in the middle. The closer to F, the more senior the title was. The executives seated on the right of F were more senior than the executive who were seated on the left of F. The surnames of the seven executives were Chan, Lee, Cheung, Wong, Ho, Au and Chow. (1) Au occupied the 4th seat to the left of A and A occupied the 2nd seat to the right of Cheung. (2) Chan and A were seated next to Lee. (3) Chow occupied the 2nd seat to the left of Wong. (4) E, B and C were seated together from left to right in this order.\n\n18. Title G: (1) was more senior than title D (2) was less senior than title B", "options": ["A. Only (1) is true.", "B. Either (1) or (2) is true.", "C. Only (2) is true.", "D. Neither (1) nor (2) is true."], "ans": 1, "exp": "B. Either (1) or (2) is true.", "img": ""},
+    {"q": "At a staff meeting, seven executives of the company sat in a row on the stage and their titles were represented by alphabets from A to G. The most senior one was represented by F and sat in the middle. The closer to F, the more senior the title was. The executives seated on the right of F were more senior than the executive who were seated on the left of F. The surnames of the seven executives were Chan, Lee, Cheung, Wong, Ho, Au and Chow. (1) Au occupied the 4th seat to the left of A and A occupied the 2nd seat to the right of Cheung. (2) Chan and A were seated next to Lee. (3) Chow occupied the 2nd seat to the left of Wong. (4) E, B and C were seated together from left to right in this order.\n\n19. How many executives were more senior than E?", "options": ["A. 3", "B. 4", "C. 5", "D. 6"], "ans": 3, "exp": "D. 6.", "img": ""},
+    {"q": "At a staff meeting, seven executives of the company sat in a row on the stage and their titles were represented by alphabets from A to G. The most senior one was represented by F and sat in the middle. The closer to F, the more senior the title was. The executives seated on the right of F were more senior than the executive who were seated on the left of F. The surnames of the seven executives were Chan, Lee, Cheung, Wong, Ho, Au and Chow. (1) Au occupied the 4th seat to the left of A and A occupied the 2nd seat to the right of Cheung. (2) Chan and A were seated next to Lee. (3) Chow occupied the 2nd seat to the left of Wong. (4) E, B and C were seated together from left to right in this order.\n\n20. If the executive with title A and the executive with title E exchanged their titles, which of the followings would be correct?", "options": ["A. Au would be promoted by five grades.", "B. Chow would be promoted by four grades.", "C. Ho would move from the left side of F to his right side.", "D. Ho would occupy the seat that was three seats away from his or her original seat."], "ans": 0, "exp": "A. Au would be promoted by five grades.", "img": ""},
+    {"q": "At a staff meeting, seven executives of the company sat in a row on the stage and their titles were represented by alphabets from A to G. The most senior one was represented by F and sat in the middle. The closer to F, the more senior the title was. The executives seated on the right of F were more senior than the executive who were seated on the left of F. The surnames of the seven executives were Chan, Lee, Cheung, Wong, Ho, Au and Chow. (1) Au occupied the 4th seat to the left of A and A occupied the 2nd seat to the right of Cheung. (2) Chan and A were seated next to Lee. (3) Chow occupied the 2nd seat to the left of Wong. (4) E, B and C were seated together from left to right in this order.\n\n21. If Ho was degraded by two grades, which of the followings would be true?", "options": ["A. The executive with title D would be promoted by one grade.", "B. Wong would be degraded.", "C. Cheung would become the 2nd most senior executive.", "D. The executive with title B would be promoted by two grades."], "ans": 2, "exp": "C. Cheung would become the 2nd most senior executive.", "img": ""},
+    {"q": "The side dishes to a restaurant’s main course are composed of three kinds of vegetables. There are seven kinds of vegetables that are available for side dishes in the kitchen: pea, radish, potato, yardlong bean, eggplant, Broccoli and cauliflower. The executive chef is selecting side dishes of the evening according to the following conditions: If pea is selected, radish must also be selected; vice versa. Potato and yardlong bean cannot be selected at the same time. Either potato or pea must be selected.\n\n22. Which of the following combinations of side dishes can meet the executive chef’s conditions?", "options": ["A. Potato, yardlong bean and broccoli", "B. Pea, eggplant and broccoli", "C. Radish, potato and cauliflower", "D. Potato, eggplant and cauliflower"], "ans": 3, "exp": "D. Potato, eggplant and cauliflower.", "img": ""},
+    {"q": "The side dishes to a restaurant’s main course are composed of three kinds of vegetables. There are seven kinds of vegetables that are available for side dishes in the kitchen: pea, radish, potato, yardlong bean, eggplant, Broccoli and cauliflower. The executive chef is selecting side dishes of the evening according to the following conditions: If pea is selected, radish must also be selected; vice versa. Potato and yardlong bean cannot be selected at the same time. Either potato or pea must be selected.\n\n23. If yardlong bean is one of side dishes, which of the following combinations of vegetables has to be selected as well？", "options": ["A. Radish and potato", "B. Eggplant and broccoli", "C. Pea and radish", "D. Potato and eggplant"], "ans": 2, "exp": "C. Pea and radish.", "img": ""},
+    {"q": "The side dishes to a restaurant’s main course are composed of three kinds of vegetables. There are seven kinds of vegetables that are available for side dishes in the kitchen: pea, radish, potato, yardlong bean, eggplant, Broccoli and cauliflower. The executive chef is selecting side dishes of the evening according to the following conditions: If pea is selected, radish must also be selected; vice versa. Potato and yardlong bean cannot be selected at the same time. Either potato or pea must be selected.\n\n24. If eggplant is one of side dishes, which of the following combinations of vegetables has to be selected as well？", "options": ["A. Potato and broccoli", "B. Pea and potato", "C. Broccoli and cauliflower", "D. Pea and broccoli"], "ans": 1, "exp": "B. Pea and potato.", "img": ""},
+    {"q": "The side dishes to a restaurant’s main course are composed of three kinds of vegetables. There are seven kinds of vegetables that are available for side dishes in the kitchen: pea, radish, potato, yardlong bean, eggplant, Broccoli and cauliflower. The executive chef is selecting side dishes of the evening according to the following conditions: If pea is selected, radish must also be selected; vice versa. Potato and yardlong bean cannot be selected at the same time. Either potato or pea must be selected.\n\n25. If potato and cauliflower are chosen as side dishes, what is the remaining number of vegetables that can be chosen as the third side dish?", "options": ["A. One", "B. Two", "C. Three", "D. Four"], "ans": 1, "exp": "B. Two.", "img": ""},
+    {"q": "The side dishes to a restaurant’s main course are composed of three kinds of vegetables. There are seven kinds of vegetables that are available for side dishes in the kitchen: pea, radish, potato, yardlong bean, eggplant, Broccoli and cauliflower. The executive chef is selecting side dishes of the evening according to the following conditions: If pea is selected, radish must also be selected; vice versa. Potato and yardlong bean cannot be selected at the same time. Either potato or pea must be selected.\n\n26. If broccoli is one of the side dishes, which of the following vegetables cannot be used？", "options": ["A. Cauliflower", "B. Eggplant", "C. Potato", "D. Yardlong bean"], "ans": 3, "exp": "D. Yardlong bean.", "img": ""},
+    {"q": "Father planted sugarcanes and knew them well. But he was also willing to learn about cattle. He invested all his money on a calf and a black bull. The bull was shipped here in a cargo boat and was fixed by a sling. Mary, a friend of my father, smiled at the smell of the bull and said it was bad for a bull to travel in a cargo boat. On the evenings of Friday and Saturday, we heard sounds of drums from the town, beautiful but frightening. Uneased by the sound, Father went down the hill along the wandering path, looking down at the sea in a daze. It was rather stuffy and quiet in the morning. And some rotten meat was beginning to rot in somewhere. What shocked me happened one week later. When we were going to take the bull away from the boat, Mary came and warned us of the bull became mad and it was killing other animals in the flock. Father rose to his feet slowly and put down his tools. I followed him into his room and saw him loading his gun in anger and fright. I was scared.\n\n27. The comment on the bull most likely meant", "options": ["A. The ocean trip did not cure the illness of the bull", "B. The bull felt angry at being separated from the flock", "C. He thought the ocean trip had triggered the temper of the bull", "D. He realized that the transportation annoyed the bull"], "ans": 3, "exp": "D. He realized that the transportation annoyed the bull.", "img": ""},
+    {"q": "Father planted sugarcanes and knew them well. But he was also willing to learn about cattle. He invested all his money on a calf and a black bull. The bull was shipped here in a cargo boat and was fixed by a sling. Mary, a friend of my father, smiled at the smell of the bull and said it was bad for a bull to travel in a cargo boat. On the evenings of Friday and Saturday, we heard sounds of drums from the town, beautiful but frightening. Uneased by the sound, Father went down the hill along the wandering path, looking down at the sea in a daze. It was rather stuffy and quiet in the morning. And some rotten meat was beginning to rot in somewhere. What shocked me happened one week later. When we were going to take the bull away from the boat, Mary came and warned us of the bull became mad and it was killing other animals in the flock. Father rose to his feet slowly and put down his tools. I followed him into his room and saw him loading his gun in anger and fright. I was scared.\n\n28. “Some rotten meat” in the passage is used to", "options": ["A. Emphasize the bad sanitary conditions on the island", "B. Indicate that there was no fridge at that time", "C. Criticize Father’s farm management", "D. Indicate the ruin of the flock"], "ans": 3, "exp": "D. Indicate the ruin of the flock.", "img": ""},
+    {"q": "Father planted sugarcanes and knew them well. But he was also willing to learn about cattle. He invested all his money on a calf and a black bull. The bull was shipped here in a cargo boat and was fixed by a sling. Mary, a friend of my father, smiled at the smell of the bull and said it was bad for a bull to travel in a cargo boat. On the evenings of Friday and Saturday, we heard sounds of drums from the town, beautiful but frightening. Uneased by the sound, Father went down the hill along the wandering path, looking down at the sea in a daze. It was rather stuffy and quiet in the morning. And some rotten meat was beginning to rot in somewhere. What shocked me happened one week later. When we were going to take the bull away from the boat, Mary came and warned us of the bull became mad and it was killing other animals in the flock. Father rose to his feet slowly and put down his tools. I followed him into his room and saw him loading his gun in anger and fright. I was scared.\n\n29. Why did the sounds of drums from the town make Father uneasy?", "options": ["A. Because they indicated the hostility and attack from the neighbouring village.", "B. Because Father was going to serve the Army.", "C. Because Father was going to Cuba.", "D. Because it seemed that a certain plague was going to break out"], "ans": 3, "exp": "D. Because it seemed that a certain plague was going to break out.", "img": ""},
+    {"q": "Father planted sugarcanes and knew them well. But he was also willing to learn about cattle. He invested all his money on a calf and a black bull. The bull was shipped here in a cargo boat and was fixed by a sling. Mary, a friend of my father, smiled at the smell of the bull and said it was bad for a bull to travel in a cargo boat. On the evenings of Friday and Saturday, we heard sounds of drums from the town, beautiful but frightening. Uneased by the sound, Father went down the hill along the wandering path, looking down at the sea in a daze. It was rather stuffy and quiet in the morning. And some rotten meat was beginning to rot in somewhere. What shocked me happened one week later. When we were going to take the bull away from the boat, Mary came and warned us of the bull became mad and it was killing other animals in the flock. Father rose to his feet slowly and put down his tools. I followed him into his room and saw him loading his gun in anger and fright. I was scared.\n\n30. The author’s father used the gun to", "options": ["A. Kill the bull", "B. Kill Mary", "C. Kill the enemies from the neighbouring village", "D. Kill himself"], "ans": 0, "exp": "A. Kill the bull.", "img": ""},
+    {"q": "Father planted sugarcanes and knew them well. But he was also willing to learn about cattle. He invested all his money on a calf and a black bull. The bull was shipped here in a cargo boat and was fixed by a sling. Mary, a friend of my father, smiled at the smell of the bull and said it was bad for a bull to travel in a cargo boat. On the evenings of Friday and Saturday, we heard sounds of drums from the town, beautiful but frightening. Uneased by the sound, Father went down the hill along the wandering path, looking down at the sea in a daze. It was rather stuffy and quiet in the morning. And some rotten meat was beginning to rot in somewhere. What shocked me happened one week later. When we were going to take the bull away from the boat, Mary came and warned us of the bull became mad and it was killing other animals in the flock. Father rose to his feet slowly and put down his tools. I followed him into his room and saw him loading his gun in anger and fright. I was scared.\n\n31. What’s the theme of the passage?", "options": ["A. Cattle", "B. Father", "C. Destruction and death", "D. Nostalgia"], "ans": 2, "exp": "C. Destruction and death.", "img": ""},
+    {"q": "Culture is the product of collective learning. When the environment poses pressures on a certain community, the community has to adapt itself accordingly. Generally, adaptation is the selection of some relatively important elements from the environment and endows them with specific meanings. These meanings have to be widely accepted across the community and will lead to performance of certain behaviors together. Such collective behavior is culture. Therefore, cultural differences are in fact the result of differences in selecting elements in the environment to endow with different meanings.\n\n32. The theme of the passage is to (s5 to S1)", "options": ["A. introduce different cultural orientations", "B. explain how a community learns to adapt itself to the environment", "C. explain how culture is formed", "D. indicate the relationship between social meanings and culture"], "ans": 2, "exp": "C. explain how culture is formed.", "img": ""},
+    {"q": "Culture is the product of collective learning. When the environment poses pressures on a certain community, the community has to adapt itself accordingly. Generally, adaptation is the selection of some relatively important elements from the environment and endows them with specific meanings. These meanings have to be widely accepted across the community and will lead to performance of certain behaviors together. Such collective behavior is culture. Therefore, cultural differences are in fact the result of differences in selecting elements in the environment to endow with different meanings.\n\n33. Culture is a product of learning, because", "options": ["A. the community has to learn to adapt to the environment", "B. individuals have to learn the culture of the community to which they belong to", "C. the community has to learn which elements to select to endow with meanings", "D. All of the above"], "ans": 0, "exp": "A. the community has to learn to adapt to the environment.", "img": ""},
+    {"q": "Culture is the product of collective learning. When the environment poses pressures on a certain community, the community has to adapt itself accordingly. Generally, adaptation is the selection of some relatively important elements from the environment and endows them with specific meanings. These meanings have to be widely accepted across the community and will lead to performance of certain behaviors together. Such collective behavior is culture. Therefore, cultural differences are in fact the result of differences in selecting elements in the environment to endow with different meanings.\n\n34. Different cultures are", "options": ["A. different environments", "B. different reactions to the environment", "C. different environmental elements", "D. different meanings of life"], "ans": 1, "exp": "B. different reactions to the environment.", "img": ""},
+    {"q": "Culture is the product of collective learning. When the environment poses pressures on a certain community, the community has to adapt itself accordingly. Generally, adaptation is the selection of some relatively important elements from the environment and endows them with specific meanings. These meanings have to be widely accepted across the community and will lead to performance of certain behaviors together. Such collective behavior is culture. Therefore, cultural differences are in fact the result of differences in selecting elements in the environment to endow with different meanings.\n\n35. The most fundamental cause of the formation of a culture is", "options": ["A. adaptation", "B. meaning", "C. agreement", "D. endowment"], "ans": 2, "exp": "C. agreement.", "img": ""},
+
+    // ==================== SECTION 2: VISUAL-SPATIAL (26 questions - full instructions + image placeholders) ====================
+    {"q": "One of the figures matches the target figure. Which one is it? You may rotate the figures freely, either clock-wise or counter clock-wise to find the match.\n\n1.", "options": ["A", "B", "C", "D"], "ans": 3, "exp": "D (official key).", "img": "pilot_visual_1.jpeg"},
+    {"q": "One of the figures matches the target figure. Which one is it? You may rotate the figures freely, either clock-wise or counter clock-wise to find the match.\n\n2.", "options": ["A", "B", "C", "D"], "ans": 0, "exp": "A (official key).", "img": "pilot_visual_2.jpeg"},
+    {"q": "One of the figures does NOT match the target figure no matter how you rotate it in the plane, clockwise or counter clock-wise. Which one is it?\n\n3.", "options": ["A", "B", "C", "D"], "ans": 0, "exp": "A (official key).", "img": "pilot_visual_3.jpeg"},
+    {"q": "Find the object that does NOT match the target object no matter how you rotate it.\n\n4.", "options": ["A", "B", "C", "D"], "ans": 3, "exp": "D (official key).", "img": "pilot_visual_4.jpeg"},
+    {"q": "Find the object that does NOT match the target object no matter how you rotate it.\n\n5.", "options": ["A", "B", "C", "D"], "ans": 0, "exp": "A (official key).", "img": "pilot_visual_5.jpeg"},
+    {"q": "Find the object that does NOT match the target object no matter how you rotate it.\n\n6.", "options": ["A", "B", "C", "D"], "ans": 2, "exp": "C (official key).", "img": "pilot_visual_6.jpeg"},
+    {"q": "The two target figures share some common feature(s). Please find from the four figures below the one which also has these common feature(s).\n\n7.", "options": ["A", "B", "C", "D"], "ans": 0, "exp": "A (official key).", "img": "pilot_visual_7.jpeg"},
+    {"q": "The two target figures share some common feature(s). Please find from the four figures below the one which also has these common feature(s).\n\n8.", "options": ["A", "B", "C", "D"], "ans": 0, "exp": "A (official key).", "img": "pilot_visual_8.jpeg"},
+    {"q": "The two target figures share some common feature(s). Please find from the four figures below the one which also has these common feature(s).\n\n9.", "options": ["A", "B", "C", "D"], "ans": 2, "exp": "C (official key).", "img": "pilot_visual_9.jpeg"},
+    {"q": "The two target figures share some common feature(s). Please find from the four figures below the one which also has these common feature(s).\n\n10.", "options": ["A", "B", "C", "D"], "ans": 3, "exp": "D (official key).", "img": "pilot_visual_10.jpeg"},
+    {"q": "On the left, you see two figures linked with an arrow, i.e., Figure 1 → Figure 2, and on the right, you see Figure 3 → ?. Choose a Figure X from the four answers so that the relationship between Figure 3 and Figure X is the same as that between Figure 1 and Figure 2.\n\n11.", "options": ["A", "B", "C", "D"], "ans": 3, "exp": "D (official key).", "img": "pilot_visual_11.jpeg"},
+    {"q": "On the left, you see two figures linked with an arrow, i.e., Figure 1 → Figure 2, and on the right, you see Figure 3 → ?. Choose a Figure X from the four answers so that the relationship between Figure 3 and Figure X is the same as that between Figure 1 and Figure 2.\n\n12.", "options": ["A", "B", "C", "D"], "ans": 1, "exp": "B (official key).", "img": "pilot_visual_12.jpeg"},
+    {"q": "The object figure has some regularity (regularities). Which of the four answers below best fits such regularity (regularities) when being put in the question mark (?) position?\n\n13.", "options": ["A", "B", "C", "D"], "ans": 0, "exp": "A (official key).", "img": "pilot_visual_13.jpeg"},
+    {"q": "The object figure has some regularity (regularities). Which of the four answers below best fits such regularity (regularities) when being put in the question mark (?) position?\n\n14.", "options": ["A", "B", "C", "D"], "ans": 0, "exp": "A (official key).", "img": "pilot_visual_14.jpeg"},
+    {"q": "The object figure has some regularity (regularities). Which of the four answers below best fits such regularity (regularities) when being put in the question mark (?) position?\n\n15.", "options": ["A", "B", "C", "D"], "ans": 1, "exp": "B (official key).", "img": "pilot_visual_15.jpeg"},
+    {"q": "The object figure has some regularity (regularities). Which of the four answers below best fits such regularity (regularities) when being put in the question mark (?) position?\n\n16.", "options": ["A", "B", "C", "D"], "ans": 2, "exp": "C (official key).", "img": "pilot_visual_16.jpeg"},
+    {"q": "The object figure has some regularity (regularities). Which of the four answers below best fits such regularity (regularities) when being put in the question mark (?) position?\n\n17.", "options": ["A", "B", "C", "D"], "ans": 0, "exp": "A (official key).", "img": "pilot_visual_17.jpeg"},
+    {"q": "The object figure has some regularity (regularities). Which of the four answers below best fits such regularity (regularities) when being put in the question mark (?) position?\n\n18.", "options": ["A", "B", "C", "D"], "ans": 1, "exp": "B (official key).", "img": "pilot_visual_18.jpeg"},
+    {"q": "The object figure has some regularity (regularities). Which of the four answers below best fits such regularity (regularities) when being put in the question mark (?) position?\n\n19.", "options": ["A", "B", "C", "D"], "ans": 2, "exp": "C (official key).", "img": "pilot_visual_19.jpeg"},
+    {"q": "One of the 3-dimensional objects you see on the right CANNOT be made from folding the flattened the left target figure. Which one?\n\n20.", "options": ["A", "B", "C", "D"], "ans": 3, "exp": "D (official key).", "img": "pilot_visual_20.jpeg"},
+    {"q": "One of the 3-dimensional objects you see on the right CANNOT be made from folding the flattened the left target figure. Which one?\n\n21.", "options": ["A", "B", "C", "D"], "ans": 3, "exp": "D (official key).", "img": "pilot_visual_21.jpeg"},
+    {"q": "One of the 3-dimensional objects you see on the right CANNOT be made from folding the flattened the left target figure. Which one?\n\n22.", "options": ["A", "B", "C", "D"], "ans": 3, "exp": "D (official key).", "img": "pilot_visual_22.jpeg"},
+    {"q": "One of the 3-dimensional objects you see on the right CANNOT be made from folding the flattened the left target figure. Which one?\n\n23.", "options": ["A", "B", "C", "D"], "ans": 3, "exp": "D (official key).", "img": "pilot_visual_23.jpeg"},
+    {"q": "Find the figure that is identical to the target figure.\n\n24.", "options": ["A", "B", "C", "D"], "ans": 3, "exp": "D (official key).", "img": "pilot_visual_24.jpeg"},
+    {"q": "Find the figure that is identical to the target figure.\n\n25.", "options": ["A", "B", "C", "D"], "ans": 2, "exp": "C (official key).", "img": "pilot_visual_25.jpeg"},
+    {"q": "Find the figure that is identical to the target figure.\n\n26.", "options": ["A", "B", "C", "D"], "ans": 2, "exp": "C (official key).", "img": "pilot_visual_26.jpeg"},
+
+    // ==================== SECTION 3: MECHANICAL REASONING (40 questions - full original text) ====================
+    {"q": "1. In which situation one needs more energy to take up the object m?", "options": ["A. A", "B. B", "C. Same for A and B", "D. Cannot be determined"], "ans": 0, "exp": "A (official key).", "img": "pilot_mech_1.jpeg"},
+    {"q": "2. If the switch is turned on, which bulb will light up?", "options": ["A. A", "B. B", "C. Both A and B", "D. None of the above"], "ans": 2, "exp": "C. Both A and B.", "img": "pilot_mech_2.jpeg"},
+    {"q": "3. R2 is a sliding rheostat, if its slider slides to the right, what will happen to the light bulb?", "options": ["A. Become brighter", "B. Become dimmer", "C. Remain unchanged", "D. Cannot be determined"], "ans": 1, "exp": "B. Become dimmer.", "img": "pilot_mech_3.jpeg"},
+    {"q": "4. If the train moves to the left, and you run to the end of the train, compared to its actual speed, the speed of the train as you feel is:", "options": ["A. Faster", "B. Same speed", "C. Slower", "D. Cannot be determined"], "ans": 0, "exp": "A. Faster.", "img": "pilot_mech_4.jpeg"},
+    {"q": "5. A ball ties on a rope and rotates on a smooth table. If we cut the rope, the ball will move like in:", "options": ["A. Picture A", "B. Picture B", "C. Picture C", "D. Cannot be determined"], "ans": 1, "exp": "B. Picture B.", "img": "pilot_mech_5.jpeg"},
+    {"q": "6. If a bullet is ejected horizontally，its route is like:", "options": ["A. Route A", "B. Route B", "C. Route C", "D. Cannot be determined"], "ans": 2, "exp": "C. Route C.", "img": "pilot_mech_6.jpeg"},
+    {"q": "7. R2 is a sliding rheostat, if its slider slides to right, what will happen to the light bulb?", "options": ["A. Become brighter", "B. Become dimmer", "C. Remains changed", "D. Cannot be determined"], "ans": 1, "exp": "B. Become dimmer.", "img": "pilot_mech_7.jpeg"},
+    {"q": "8. Using the same camera with the same settings, we take two pictures of the same girl. For which picture, do we stand closer to the girl?", "options": ["A. Picture A", "B. Picture B", "C. A and B is the same", "D. Cannot be determined"], "ans": 0, "exp": "A. Picture A.", "img": "pilot_mech_8.jpeg"},
+    {"q": "9. Which is brighter?", "options": ["A. A", "B. B", "C. A and B are the same", "D. Cannot be determined"], "ans": 0, "exp": "A. A.", "img": "pilot_mech_9.jpeg"},
+    {"q": "10. The figure below of a clock is what you see from inside a mirror, what is the real time?", "options": ["A. 20:15", "B. 21:05", "C. 21:15", "D. 20:51"], "ans": 1, "exp": "B. 21:05.", "img": "pilot_mech_10.jpeg"},
+    {"q": "11. In a dark house, in between the lighted candle and a film, there is a piece of opaque cardboard with a small hole, what will be seen on the film?", "options": ["A. A", "B. B", "C. Neither A nor B", "D. Cannot be determined"], "ans": 1, "exp": "B. B.", "img": "pilot_mech_11.jpeg"},
+    {"q": "12. Which lens should be worn by nearsighted people?", "options": ["A. A", "B. B", "C. C", "D. None of the above"], "ans": 1, "exp": "B. B.", "img": "pilot_mech_12.jpeg"},
+    {"q": "13. Which is possible?", "options": ["A. A", "B. B", "C. Both A and B", "D. Neither A nor B"], "ans": 1, "exp": "B. B.", "img": "pilot_mech_13.jpeg"},
+    {"q": "14. Which method saves more energy?", "options": ["A. A", "B. B", "C. A & B are the same", "D. Cannot be determined"], "ans": 1, "exp": "B. B.", "img": "pilot_mech_14.jpeg"},
+    {"q": "15. A is faster than B by 10 meters when running a 100-meter race. If A starts 10 meters behind B, who will win?", "options": ["A. A first arrives", "B. B first arrives", "C. They arrive at the same time", "D. Cannot be determined"], "ans": 0, "exp": "A. A first arrives.", "img": "pilot_mech_15.jpeg"},
+    {"q": "16. Two containers with the same height, which one can hold more water?", "options": ["A. A", "B. B", "C. A and B are the same", "D. Cannot be determined"], "ans": 1, "exp": "B. B.", "img": "pilot_mech_16.jpeg"},
+    {"q": "17. In which case do the eyes accommodate faster, going into a theatre or going out of a theatre?", "options": ["A. Going out of a theatre", "B. Going into a theatre", "C. Both are the same", "D. Cannot be determined"], "ans": 1, "exp": "B. Going into a theatre.", "img": "pilot_mech_17.jpeg"},
+    {"q": "18. To travel the same distance, the wheels of which bike revolve more?", "options": ["A. A", "B. B", "C. Same for A and B", "D. Cannot be determined"], "ans": 1, "exp": "B. B.", "img": "pilot_mech_18.jpeg"},
+    {"q": "19. For the two pendulums shown, A has a shorter string and B a longer string. If two strings are pulled aside by the same angle, which one will stop earlier?", "options": ["A. A", "B. B", "C. A and B stop at the same time", "D. Cannot be determined"], "ans": 2, "exp": "C. A and B stop at the same time.", "img": "pilot_mech_19.jpeg"},
+    {"q": "20. Which light bulb is brighter?", "options": ["A. A", "B. B", "C. C", "D. All are the same"], "ans": 2, "exp": "C. C.", "img": "pilot_mech_20.jpeg"},
+    {"q": "21. A man stands inside the swimming pool; people at the pool side will see his legs become:", "options": ["A. Longer", "B. unchanged", "C. Shorter", "D. Cannot be determined"], "ans": 2, "exp": "C. Shorter.", "img": "pilot_mech_21.jpeg"},
+    {"q": "22. In the winter, if we want to melt the snow faster on road, what do we spread over the road?", "options": ["A. Salt", "B. Water", "C. Sand", "D. Cannot be determined"], "ans": 0, "exp": "A. Salt.", "img": "pilot_mech_22.jpeg"},
+    {"q": "23. Place frozen pork in the water or air with same temperature, which method can defrost the pork faster?", "options": ["A. Putting it in the water", "B. Putting it in the air", "C. No difference", "D. Cannot be determined"], "ans": 0, "exp": "A. Putting it in the water.", "img": "pilot_mech_23.jpeg"},
+    {"q": "24. Blow up the balloon first, hold the tip and then release suddenly, the movement of the balloon will be,", "options": ["A. A", "B. B", "C. C", "D. Cannot be determined"], "ans": 1, "exp": "B. B.", "img": "pilot_mech_24.jpeg"},
+    {"q": "25. Facing the scared mirror, at which point, the man will look more out of shape?", "options": ["A. Point A", "B. Point B", "C. Point C", "D. All the same"], "ans": 2, "exp": "C. Point C.", "img": "pilot_mech_25.jpeg"},
+    {"q": "26. At the same time when the man shoots the monkey from ground, the monkey falls vertically from the tree. How should the man aim to be most likely to hit the monkey?", "options": ["A. ①", "B.②", "C.③", "D. All the same"], "ans": 2, "exp": "C.③", "img": "pilot_mech_26.jpeg"},
+    {"q": "27. Which produce serious injury, being scalded by 100℃ water or 100℃ steam?", "options": ["A. Water", "B. Steam", "C. Same", "D. Cannot be determined"], "ans": 1, "exp": "B. Steam.", "img": "pilot_mech_27.jpeg"},
+    {"q": "28. At which point the tire of the motorcycle will be more likely to break?", "options": ["A. Point A", "B. Point B", "C. Point C", "D. All the same"], "ans": 1, "exp": "B. Point B.", "img": "pilot_mech_28.jpeg"},
+    {"q": "29. To spear a fish in the river, the spear should be aiming towards", "options": ["A. The centre of the fish", "B. The tail of the fish", "C. The head of the fish", "D. Cannot be determined"], "ans": 2, "exp": "C. The head of the fish.", "img": "pilot_mech_29.jpeg"},
+    {"q": "30. A bus turns to the right suddenly, the passengers on the bus will:", "options": ["A. Not tilt", "B. Tilt to the left", "C. Tilt to the right", "D. Cannot be determined"], "ans": 2, "exp": "C. Tilt to the right.", "img": "pilot_mech_30.jpeg"},
+    {"q": "31. Pour water into a water bottle, which situation the sound is the loudest?", "options": ["A. Bottle A", "B. Bottle B", "C. Bottle C", "D. All the same"], "ans": 2, "exp": "C. Bottle C.", "img": "pilot_mech_31.jpeg"},
+    {"q": "32. If we put the writing brush into water, what we can see?", "options": ["A. As shown in picture A", "B. As shown in picture B", "C. As shown in picture C", "D. Picture A, B & C are all incorrect"], "ans": 1, "exp": "B. As shown in picture B.", "img": "pilot_mech_32.jpeg"},
+    {"q": "33. To travel straight in water to the opposite bank, which direction should be the boat facing?", "options": ["A. Direction A", "B. Direction B", "C. Direction C", "D. All the same"], "ans": 2, "exp": "C. Direction C.", "img": "pilot_mech_33.jpeg"},
+    {"q": "34. If a person stands on a scale and squat down suddenly, the reading of the scale will:", "options": ["A. Decrease", "B. Increase then decrease", "C. Decrease then increase", "D. Cannot be determined"], "ans": 1, "exp": "B. Increase then decrease.", "img": "pilot_mech_34.jpeg"},
+    {"q": "35. Which viewing distance is the most comfortable for the eye?", "options": ["A. 20cm", "B. 30cm", "C. 25cm", "D. Cannot be determined"], "ans": 2, "exp": "C. 25cm.", "img": "pilot_mech_35.jpeg"},
+    {"q": "36. If two sides of the object are tied on the same rope and hanged as shown in the picture. If one pulls down part B suddenly, which part of rope will break?", "options": ["A. Part A", "B. Part B", "C. Part A and Part B are Broken together", "D. Cannot be determined"], "ans": 0, "exp": "A. Part A.", "img": "pilot_mech_36.jpeg"},
+    {"q": "37. There is an air bubble at the bottom of a container filled with water. As the bubble goes up, its size will become", "options": ["A. Bigger", "B. Smaller", "C. Unchanged", "D. Cannot be determined"], "ans": 0, "exp": "A. Bigger.", "img": "pilot_mech_37.jpeg"},
+    {"q": "38. To place two blocks of magnet on a smooth plane surface, they will :", "options": ["A. Attract", "B. Repel", "C. Rotate", "D. Cannot be determined"], "ans": 0, "exp": "A. Attract.", "img": "pilot_mech_38.jpeg"},
+    {"q": "39. To place a flower in between of a 60° two-side mirror, what we can see from the mirror:", "options": ["A. 2 flowers", "B. 4 flowers", "C. 5 flowers", "D. 10 flowers"], "ans": 2, "exp": "C. 5 flowers.", "img": "pilot_mech_39.jpeg"},
+    {"q": "40. If we want to drink a cup of milk tea in hurry, which method is the best to cool the tea?", "options": ["A. Cool down the tea for 5 minutes and put a spoonful of cold milk", "B. Cool down the tea for 2.5 minutes and put a spoonful of cold milk for another 2.5 minutes", "C. Put a spoonful of cold milk into the tea, cool down for 5 minutes", "D. The above three methods are the same"], "ans": 0, "exp": "A.", "img": "pilot_mech_40.jpeg"},
+
+    // ==================== SECTION 4: NUMERICAL REASONING (35 questions - full original text) ====================
+    {"q": "Sample Question: A is larger than B by 10%, and B is smaller than C by 10%, then the relationship between A and C is:", "options": ["A. A = C", "B. A > C", "C. A < C", "D. Cannot be determined"], "ans": 1, "exp": "B. A > C.", "img": ""},
+    {"q": "2. How many 5cm x 8 cm pieces can be cut at most from a piece of board paper of 20cm x 30cm?", "options": ["A. 12 pieces", "B. 13 pieces", "C. 14 pieces", "D. 15 pieces"], "ans": 2, "exp": "C. 14 pieces.", "img": ""},
+    {"q": "3. When 100g of salt is added into saline of 20% concentration, the concentration becomes 40%. In order to dilute the saline to a concentration of 10%, how many grams (g) of water has to be added?", "options": ["A. 1,200g", "B. 1,300g", "C. 1,500g", "D. 1,600g"], "ans": 0, "exp": "A. 1,200g.", "img": ""},
+    {"q": "4. If X = (A - B + C), Y = 2(A - B - C) then ? = B", "options": ["A. Z/X", "B. Y/X - -", "C. Z/Y", "D. 3Y/X -"], "ans": 3, "exp": "D.", "img": ""},
+    {"q": "5. If A>B>2, then which of the followings has the largest value?", "options": ["A. A+B", "B. A-B", "C. AB", "D. B/A"], "ans": 2, "exp": "C. AB.", "img": ""},
+    {"q": "6. If X² > Y², then which of the followings is true?", "options": ["A. X > Y", "B. X³ > Y³", "C. (X-Y)/(X+Y) > 0", "D. X + Y > 0"], "ans": 2, "exp": "C. (X-Y)/(X+Y) > 0.", "img": ""},
+    {"q": "7. If 4+44+444+4444 = X, then 1+11+111+1111 = ?", "options": ["A. 4X", "B. 2X", "C. 2X", "D. 4X"], "ans": 1, "exp": "B. 2X.", "img": ""},
+    {"q": "It is necessary to pass a hill when traveling from places A to B. The distance between the hilltop and places A and B are 10km and 8km respectively (as shown below). Mr. Cheung set off at place A and arrived at place B 7 hours later. It is known that Mr. Cheung is two times faster when he goes downhill than uphill.\n\n8. Mr. Cheung’s speed when going downhill is:", "options": ["A. 2 km/Hr", "B. 3 km/Hr", "C. 4 km/Hr", "D. 5 km/Hr"], "ans": 2, "exp": "C. 4 km/Hr.", "img": ""},
+    {"q": "It is necessary to pass a hill when traveling from places A to B. The distance between the hilltop and places A and B are 10km and 8km respectively (as shown below). Mr. Cheung set off at place A and arrived at place B 7 hours later. It is known that Mr. Cheung is two times faster when he goes downhill than uphill.\n\n9. How long does it take for Mr. Cheung to return to places A from B?", "options": ["A. 6 Hr", "B. 6.5 Hr", "C. 7 Hr", "D. Cannot be determined"], "ans": 3, "exp": "D. Cannot be determined.", "img": ""},
+    {"q": "P and Q walked towards each other from places A and B simultaneously. They met after 3 hours at a spot that was 3km away from the midpoint of the distance. It is known that the walking speed of P is 3/2 of that of Q.\n\n10. The walking speed of P was:", "options": ["A. 4 km/Hr", "B. 5 km/Hr", "C. 6 km/Hr", "D. Cannot be determined"], "ans": 0, "exp": "A. 4 km/Hr.", "img": ""},
+    {"q": "P and Q walked towards each other from places A and B simultaneously. They met after 3 hours at a spot that was 3km away from the midpoint of the distance. It is known that the walking speed of P is 3/2 of that of Q.\n\n11. The distance between places A and B is:", "options": ["A. 24 km", "B. 30 km", "C. 45 km", "D. Cannot be determined"], "ans": 1, "exp": "B. 30 km.", "img": ""},
+    {"q": "A transportation company has to deliver 77 tons of goods from places A to B. The company has three types of lorry: large-sized lorry can deliver 5 tons of goods each time, and the transportation cost is $75; medium-sized lorry can deliver 4 tons of goods each time, and the transportation cost is $70; small-sized lorry can deliver 3 tons of goods each time, and the transportation cost is $60.\n\n12. If small-sized lorries are used for the whole delivery, how much more expensive will the cost be as compared to using large-sized lorries?", "options": ["A. 20%", "B. 25%", "C. 30%", "D. 33%"], "ans": 2, "exp": "C. 30%.", "img": ""},
+    {"q": "A transportation company has to deliver 77 tons of goods from places A to B. The company has three types of lorry: large-sized lorry can deliver 5 tons of goods each time, and the transportation cost is $75; medium-sized lorry can deliver 4 tons of goods each time, and the transportation cost is $70; small-sized lorry can deliver 3 tons of goods each time, and the transportation cost is $60.\n\n13. If the cheapest transportation scheme is used, the cost is:", "options": ["A. $1,155", "B. $1,180", "C. $1,185", "D. $1,290"], "ans": 1, "exp": "B. $1,180.", "img": ""},
+    {"q": "The map below shows the location of five spots (A, B, C, D and E) and the distances (km) of the intersecting roads.\n\n14. To travel from spots A to D, the shortest distance is:", "options": ["A. 20 km", "B. 40 km", "C. 55 km", "D. 80 km"], "ans": 0, "exp": "A. 20 km.", "img": "pilot_map.jpeg"},
+    {"q": "The map below shows the location of five spots (A, B, C, D and E) and the distances (km) of the intersecting roads.\n\n15. If the road linking spots B and C is closed due to accident, the shortest distance to travel from spots A to C will be:", "options": ["A. 25 km", "B. 35 km", "C. 70 km", "D. 95 km"], "ans": 1, "exp": "B. 35 km.", "img": "pilot_map.jpeg"},
+    {"q": "The map below shows the location of five spots (A, B, C, D and E) and the distances (km) of the intersecting roads.\n\n16. The government is planning to build a fire station to serve these five regions, which spot is the most ideal location for it?", "options": ["A. Spot A", "B. Spot B", "C. Spot C", "D. Spot D"], "ans": 1, "exp": "B. Spot B.", "img": "pilot_map.jpeg"},
+    {"q": "The map below shows the location of five spots (A, B, C, D and E) and the distances (km) of the intersecting roads.\n\n17. In terms of transportation, the least ideal place for building a fire station is:", "options": ["A. Spot A", "B. Spot B", "C. Spot C", "D. Spot E"], "ans": 3, "exp": "D. Spot E.", "img": "pilot_map.jpeg"},
+    {"q": "The map below shows the location of five spots (A, B, C, D and E) and the distances (km) of the intersecting roads.\n\n18. The shortest route to travel in delivering goods from spot A to the other four spots is (the same spot can be passed through more than once):", "options": ["A. ABCDEA", "B. ABDCBEBA", "C. ABEDCBA", "D. ABDEBCBA"], "ans": 2, "exp": "C. ABEDCBA.", "img": "pilot_map.jpeg"},
+    {"q": "19. Mr. Cheung has taken certain amount of money to travel overseas. He has used 20% of it on the first day, and he has used 1/3 of the remaining sum on the second day. Mr. Cheung found that he still had $560 left. How much money has Mr. Cheung taken with him for the trip?", "options": ["A. $700", "B. $1,050", "C. $1,200", "D. $2,100"], "ans": 0, "exp": "A. $700.", "img": ""},
+    {"q": "A cash bonus of $4,100 is divided among three outstanding employees, A, B and C. The ratio of A’s reward to that of B is 2:3, and the ratio of B’s reward to that of C is 4:7.\n\n21. How much has A actually received?", "options": ["A. $512", "B. $683", "C. $800", "D. $1,640"], "ans": 2, "exp": "C. $800.", "img": ""},
+    {"q": "A cash bonus of $4,100 is divided among three outstanding employees, A, B and C. The ratio of A’s reward to that of B is 2:3, and the ratio of B’s reward to that of C is 4:7.\n\n22. Compared to B, how much more has C received?", "options": ["A. $300", "B. $400", "C. $900", "D. $1,118"], "ans": 2, "exp": "C. $900.", "img": ""},
+    {"q": "There are three persons, A, B and C. The weight of A and B together is 130kg, the weight of B and C together is 150kg, while the weight of A and C together is 160kg.\n\n23. Whose weight is the lightest among the three persons?", "options": ["A. A", "B. B", "C. C", "D. Cannot be determined"], "ans": 1, "exp": "B. B.", "img": ""},
+    {"q": "There are three persons, A, B and C. The weight of A and B together is 130kg, the weight of B and C together is 150kg, while the weight of A and C together is 160kg.\n\n24. Among the three persons, the weight of the heaviest person is:", "options": ["A. 80 kg", "B. 85 kg", "C. 90 kg", "D. 95 kg"], "ans": 2, "exp": "C. 90 kg.", "img": ""},
+    {"q": "The following table shows the sales information of four types of goods in May at a department store:\nGoods | Average price | Quantity sold | Average profit\nClothes 400 1,500 100\nLeather Shoes 450 1,000 150\nCooking Utensils 200 1,200 50\nCosmetics 300 2,000 150\n\n25. The average cost of each pair of leather shoes is:", "options": ["A. $200", "B. $300", "C. $500", "D. $700"], "ans": 1, "exp": "B. $300.", "img": ""},
+    {"q": "The following table shows the sales information of four types of goods in May at a department store:\nGoods | Average price | Quantity sold | Average profit\nClothes 400 1,500 100\nLeather Shoes 450 1,000 150\nCooking Utensils 200 1,200 50\nCosmetics 300 2,000 150\n\n26. Among the four types of goods, which has the highest profit rate (i.e. the percentage of profit in cost)?", "options": ["A. Clothes", "B. Leather shoes", "C. Cooking utensils", "D. Cosmetics"], "ans": 3, "exp": "D. Cosmetics.", "img": ""},
+    {"q": "The following table shows the sales information of four types of goods in May at a department store:\nGoods | Average price | Quantity sold | Average profit\nClothes 400 1,500 100\nLeather Shoes 450 1,000 150\nCooking Utensils 200 1,200 50\nCosmetics 300 2,000 150\n\n27. Which two types of goods have the same profit rate?", "options": ["A. Leather shoes, Cosmetics", "B. Clothes, Cooking utensils", "C. Leather shoes, Cooking utensils", "D. Clothes, Leather shoes"], "ans": 1, "exp": "A. Leather shoes, Cosmetics.", "img": ""},
+    {"q": "The following table shows the sales information of four types of goods in May at a department store:\nGoods | Average price | Quantity sold | Average profit\nClothes 400 1,500 100\nLeather Shoes 450 1,000 150\nCooking Utensils 200 1,200 50\nCosmetics 300 2,000 150\n\n28. The total profit generated from the sales of the above four types of goods in May is:", "options": ["A. $480,000", "B. $510,000", "C. $660,000", "D. $720,000"], "ans": 2, "exp": "C. $660,000.", "img": ""},
+    {"q": "29. (S5 to S1) (π is the ratio of a circle’s circumference to its diameter)", "options": ["A. 1/2 p", "B. 2p/p -", "C. 2p", "D. Cannot be determined"], "ans": 1, "exp": "B.", "img": ""},
+    {"q": "The table below recorded the exchange rates of foreign currencies to Hong Kong Dollar (HKD).\nCurrency (Every $1,000) Buy Sell\nForeign Currency A 5050 5150\nForeign Currency B 230 250\nForeign Currency C 10200 10300\n\n30. Mr. Cheung has $1,000 of foreign currencies A, B and C each. If these currencies are all changed into HKD, how much HKD can Mr. Cheung get?", "options": ["A. $3,000", "B. $4,670", "C. $15,480", "D. $15,700"], "ans": 2, "exp": "C. $15,480.", "img": ""},
+    {"q": "The table below recorded the exchange rates of foreign currencies to Hong Kong Dollar (HKD).\nCurrency (Every $1,000) Buy Sell\nForeign Currency A 5050 5150\nForeign Currency B 230 250\nForeign Currency C 10200 10300\n\n31. Miss Lee needs $20,000 of foreign currency B for traveling overseas. How much HKD should she prepare for exchange at the bank?", "options": ["A. $4,600", "B. $5,000", "C. $8,000", "D. $80,000"], "ans": 1, "exp": "B. $5,000.", "img": ""},
+    {"q": "The table below recorded the exchange rates of foreign currencies to Hong Kong Dollar (HKD).\nCurrency (Every $1,000) Buy Sell\nForeign Currency A 5050 5150\nForeign Currency B 230 250\nForeign Currency C 10200 10300\n\n32. How much profit can the bank make when it trades $10,000 of currency C each time (in terms of HKD)?", "options": ["A. $100", "B. $200", "C. $1,000", "D. No profit can be made"], "ans": 2, "exp": "C. $1,000.", "img": ""},
+    {"q": "33. Mixing 300g of saline at 20% concentration with 200g of saline at 30% concentration, what is the concentration of the resulting saline?", "options": ["A. 22%", "B. 23%", "C. 24%", "D. 25%"], "ans": 2, "exp": "C. 24%.", "img": ""},
+    {"q": "34. A certain alloy weighs 200kg per m3. If that material is used to make a rectangular metal board that measures 180cm (length) x 20cm (width) x 2cm (thickness), the weight of the metal board will be:", "options": ["A. 0.144 kg", "B. 1.44 kg", "C. 14.4 kg", "D. 144 kg"], "ans": 1, "exp": "B. 1.44 kg.", "img": ""},
+    {"q": "35. If 99+101=X, then which of the following is true?", "options": ["A. X = 20", "B. X > 20", "C. X < 20", "D. Cannot be determined"], "ans": 2, "exp": "C. X < 20.", "img": ""},
+
+    // === END OF FULL ARRAY ===
+];
+
+    let currentQuestions = [];
+    const questionsPerQuiz = 20;
+
+    window.onload = () => {
+        document.getElementById('dbInfo').innerText = `題庫總數: ${allQuestions.length} 題`;
+        generateNewQuiz();
+    };
+
+    function generateNewQuiz() {
+        const form = document.getElementById('quizForm');
+        form.innerHTML = '';
+        document.getElementById('scoreDisplay').innerHTML = '未作答...';
+        document.getElementById('scoreDisplay').style.backgroundColor = '#ecf0f1';
+        document.getElementById('scoreDisplay').style.color = '#2c3e50';
+
+        // Shuffle and pick
+        const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+        currentQuestions = shuffled.slice(0, questionsPerQuiz);
+
+        currentQuestions.forEach((qObj, index) => {
+            const block = document.createElement('div');
+            block.className = 'question-block';
+            block.id = `qblock_${index}`;
+
+            const title = document.createElement('div');
+            title.className = 'question-title';
+            title.innerText = `Q${index + 1}. ${qObj.q}`;
+            block.appendChild(title);
+
+            // Insert image if exists
+            if(qObj.img) {
+                const img = document.createElement('img');
+                img.src = qObj.img;
+                img.className = 'question-img';
+                block.appendChild(img);
+            }
+
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'options';
+
+            qObj.options.forEach((optText, optIndex) => {
+                const label = document.createElement('label');
+                label.id = `label_${index}_${optIndex}`;
+
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = `q${index}`;
+                input.value = optIndex;
+
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(" " + optText));
+                optionsDiv.appendChild(label);
+            });
+
+            block.appendChild(optionsDiv);
+
+            const expDiv = document.createElement('div');
+            expDiv.className = 'explanation';
+            expDiv.id = `exp_${index}`;
+            expDiv.innerHTML = `<strong>💡 答案與解析：</strong><br>${qObj.exp}`;
+            block.appendChild(expDiv);
+
+            form.appendChild(block);
+        });
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function checkAnswers() {
+        let score = 0;
+        let answeredAll = true;
+
+        currentQuestions.forEach((qObj, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            const expDiv = document.getElementById(`exp_${index}`);
+
+            expDiv.style.display = 'block';
+
+            const correctLabel = document.getElementById(`label_${index}_${qObj.ans}`);
+            correctLabel.classList.add('correct');
+
+            if (selected) {
+                const selectedVal = parseInt(selected.value);
+                if (selectedVal === qObj.ans) {
+                    score++;
+                } else {
+                    const wrongLabel = document.getElementById(`label_${index}_${selectedVal}`);
+                    wrongLabel.classList.add('incorrect');
+                }
+            } else {
+                answeredAll = false;
+            }
+
+            const inputs = document.querySelectorAll(`input[name="q${index}"]`);
+            inputs.forEach(input => input.disabled = true);
+        });
+
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        if (!answeredAll) {
+            scoreDisplay.style.color = '#856404';
+            scoreDisplay.style.backgroundColor = '#ffeeba';
+            scoreDisplay.innerHTML = `⚠️ 未答完！得 ${score} 分`;
+        } else {
+            const pass = score >= (currentQuestions.length * 0.75);
+            scoreDisplay.style.color = pass ? '#155724' : '#721c24';
+            scoreDisplay.style.backgroundColor = pass ? '#d4edda' : '#f8d7da';
+            scoreDisplay.innerHTML = `🎯 總分: ${score} / ${currentQuestions.length}`;
+        }
+    }
+
+    function resetQuiz() {
+        document.getElementById('scoreDisplay').innerHTML = '未作答...';
+        document.getElementById('scoreDisplay').style.backgroundColor = '#ecf0f1';
+        document.getElementById('scoreDisplay').style.color = '#2c3e50';
+
+        currentQuestions.forEach((qObj, index) => {
+            const inputs = document.querySelectorAll(`input[name="q${index}"]`);
+            inputs.forEach(input => {
+                input.checked = false;
+                input.disabled = false;
+            });
+
+            qObj.options.forEach((_, optIndex) => {
+                const label = document.getElementById(`label_${index}_${optIndex}`);
+                label.classList.remove('correct');
+                label.classList.remove('incorrect');
+            });
+
+            document.getElementById(`exp_${index}`).style.display = 'none';
+        });
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function newButtonAction() {
+    // Replace this with what you actually want the button to do
+    window.location.href = "index.html";}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 互動模擬測驗 (附原圖版)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; color: #333; line-height: 1.6; padding: 20px; margin: 0; }
+        .container { max-width: 850px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 120px; }
+        h1 { text-align: center; color: #1e3c72; border-bottom: 3px solid #2a5298; padding-bottom: 15px; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #7f8c8d; font-size: 0.95em; margin-bottom: 20px; }
+        .db-info { text-align: right; font-size: 0.85em; color: #95a5a6; margin-bottom: 20px; font-weight: bold; }
+
+        .question-block { margin-bottom: 30px; padding: 25px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #fafbfc; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .question-block:hover { border-color: #b0bec5; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .question-title { font-weight: bold; margin-bottom: 15px; font-size: 1.15em; color: #2c3e50; }
+
+        .question-img { max-width: 100%; height: auto; max-height: 400px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd; object-fit: contain; }
+
+        .options label { display: block; margin-bottom: 10px; cursor: pointer; padding: 12px 15px; border-radius: 6px; background: #fff; border: 2px solid #eaeded; transition: all 0.2s; font-size: 1.05em; }
+        .options label:hover { background-color: #f4f6f7; border-color: #bdc3c7; }
+        input[type="radio"] { margin-right: 12px; transform: scale(1.3); cursor: pointer; accent-color: #1e3c72; }
+
+        .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .incorrect { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; text-decoration: line-through; }
+
+        .controls { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 15px; border-top: 1px solid #e1e8ed; text-align: center; box-shadow: 0 -3px 15px rgba(0,0,0,0.08); backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 15px; z-index: 1000; }
+        button { padding: 12px 25px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; color: #fff; font-weight: 600; transition: transform 0.1s, opacity 0.2s, filter 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+        button:active { transform: translateY(2px); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        #randomBtn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        #randomBtn:hover { filter: brightness(1.1); }
+        #resetBtn { background-color: #7f8c8d; }
+        #resetBtn:hover { background-color: #636e72; }
+        #submitBtn { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        #submitBtn:hover { filter: brightness(1.1); }
+
+        #scoreDisplay { display: inline-block; padding: 10px 20px; font-size: 1.25em; font-weight: bold; color: #2c3e50; border-radius: 8px; background: #ecf0f1; min-width: 160px; text-align: center; }
+        .explanation { display: none; margin-top: 15px; padding: 15px; background-color: #e8f4f8; border-left: 5px solid #3498db; font-size: 1em; border-radius: 0 6px 6px 0; color: #1a5276; line-height: 1.5; }
+        #newCustomBtn {background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); /* Example orange gradient */}
+        #newCustomBtn:hover {filter: brightness(1.1);
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📝  原圖互動模擬測驗</h1>
+    <div class="subtitle">完美還原試卷圖形、圖表及物理情境</div>
+    <div class="db-info" id="dbInfo"></div>
+
+    <form id="quizForm"></form>
+</div>
+
+<div class="controls">
+    <button type="button" id="randomBtn" onclick="generateNewQuiz()">🎲 隨機 20 題抽卷</button>
+    <button type="button" id="resetBtn" onclick="resetQuiz()">🔄 重置本卷</button>
+    <button type="button" id="submitBtn" onclick="checkAnswers()">✅ 提交批改</button>
+    <button type="button" id="newCustomBtn" onclick="newButtonAction()">Home</button>
+    <div id="scoreDisplay">等待開始...</div>
+</div>
+
+<script>
+    // System automatically injected question data
+    const allQuestions = [
+    // === ALL PREVIOUS IMAGE-FREE QUESTIONS FROM EARLIER DOCUMENTS ===
+    // (your original fire exam + all text-only Verbal/Numerical from Subset 1 & previous responses)
+
+  //  {"q": "38. The two beakers are filled with water... 大燒杯水滾後繼續加熱，小燒杯的水會點？", "options": ["A. The water in the small beaker won't boil over", "B. The water in the small beaker will boil over", "C. The water in the small beaker will diminish", "D. The water in the big beaker won't diminish"], "ans": 0, "exp": "小燒杯的水溫會達100度，但因為與外圍大燒杯沒有溫差，無法繼續吸收熱量來轉化狀態，因此不會沸騰（Boil over）。", "img": ""},
+  //  {"q": "一個熱水杯一個凍水杯，有一隻杯壁有水珠 係邊隻杯同係咩現象 (凍/熱)水杯璧(內/外)，(熔/液)化現象", "options": ["凍水杯(內)", "凍水杯(外)", "熱水杯(內)", "熱水杯(外)"], "ans": 1, "exp": "凍水杯外壁冷凝現象。", "img": ""},
+  //  {"q": "肥佬瘦仔互推 邊個受力較大？", "options": ["肥佬", "瘦仔", "一樣大", "視乎誰先推"], "ans": 2, "exp": "牛頓第三定律，作用力與反作用力一樣大。", "img": ""},
+  //  {"q": "企係雪地上太陽射落 影子咩顏色？", "options": ["純黑色", "白色", "偏藍色", "灰色"], "ans": 2, "exp": "雪地反射天空藍光，影子偏藍色。", "img": ""},
+  //  {"q": "將罐啤酒放入邊種箱會最快冷卻？", "options": ["淨冰", "冰+水", "冰加鹽", "冰加糖"], "ans": 2, "exp": "冰加鹽降低冰點，吸熱更快。", "img": ""},
+  //  {"q": "以下邊個係減少摩擦力既例子？", "options": ["拉緊縫衣機上既帶", "係鉗上增加坑紋", "係鞋上增加坑紋", "係原子筆筆頭上配上滑珠"], "ans": 3, "exp": "滑珠減少摩擦力。", "img": ""},
+  //  {"q": "邊個慳唔到力？", "options": ["拔釘", "升旗", "提重物（重物連下面繩中段）", "其他"], "ans": 2, "exp": "D 提重物是動滑輪但此配置機械利益=1，不能省力。", "img": ""},
+  //  {"q": "山上有兩個傷者，兩隊消防人員各自出動拯救傷者，已知道成功拯救每位傷者的機率是50%，成功拯救一位傷者不會影響拯救另一位傷者的成功率，問兩位傷者都被成功拯救的機率是多少？", "options": ["25%", "50%", "75%", "100%"], "ans": 0, "exp": "獨立事件 0.5×0.5=25%。", "img": ""},
+  //  {"q": "X同Y係兩個細過50嘅正整數，在方程（X 加Y）/（X-Y）中，x的數值是多少會令結果數值最細 。有a.1 b.2 c.48 d.49", "options": ["1", "2", "48", "49"], "ans": 2, "exp": "X=48 (Y=1) 令 (X+Y)/(X-Y) 最接近1。", "img": ""},
+  //  {"q": "男女加埋11人 抽1男1女的概率是x 現加1男落來 再抽出來抽1男1女概率增加25% 原來有多少男？", "options": ["1", "2", "3", "4"], "ans": 1, "exp": "原本男有2。", "img": ""},
+
+    // === ALL 34 VERBAL REASONING QUESTIONS FROM SUBSET (3) - FULL TEXT, NO IMAGES ===
+    {"q": "There are three routes from City A to City B. The first route goes south along a part of a coastal flat road for about 20 kilometres, and then turns west to the inland, where there is an up-hill path of about 20 kilometres long. After getting down from the hill, go south for about 15 minutes and there it is City B. The second route is the shortest one, by going south-west all along. This route covers several up-hill and down-hill paths, which is dangerous in winter because of the snow. The last route goes along the same coastal road as the first route for about 60 kilometres and then turns north-west. The north of City B is more mountainous than that in the south.\n\n1. City A is to the _____ of City B.", "options": ["A. Southwest", "B. Northwest", "C. Northeast", "D. Southeast"], "ans": 3, "exp": "D. Southeast.", "img": ""},
+    {"q": "There are three routes from City A to City B. The first route goes south along a part of a coastal flat road for about 20 kilometres, and then turns west to the inland, where there is an up-hill path of about 20 kilometres long. After getting down from the hill, go south for about 15 minutes and there it is City B. The second route is the shortest one, by going south-west all along. This route covers several up-hill and down-hill paths, which is dangerous in winter because of the snow. The last route goes along the same coastal road as the first route for about 60 kilometres and then turns north-west. The north of City B is more mountainous than that in the south.\n\n2. There is ____ on the east of City A. ", "options": ["A. A mountain", "B. A sea", "C. A plain", "D. City B"], "ans": 1, "exp": "B. A sea.", "img": ""},
+    {"q": "There are three routes from City A to City B. The first route goes south along a part of a coastal flat road for about 20 kilometres, and then turns west to the inland, where there is an up-hill path of about 20 kilometres long. After getting down from the hill, go south for about 15 minutes and there it is City B. The second route is the shortest one, by going south-west all along. This route covers several up-hill and down-hill paths, which is dangerous in winter because of the snow. The last route goes along the same coastal road as the first route for about 60 kilometres and then turns north-west. The north of City B is more mountainous than that in the south.\n\n3. There is ____ on the west of City A. ", "options": ["A. A mountain", "B. A sea", "C. A plain", "D. City B"], "ans": 2, "exp": "C. A plain.", "img": ""},
+    {"q": "There are three routes from City A to City B. The first route goes south along a part of a coastal flat road for about 20 kilometres, and then turns west to the inland, where there is an up-hill path of about 20 kilometres long. After getting down from the hill, go south for about 15 minutes and there it is City B. The second route is the shortest one, by going south-west all along. This route covers several up-hill and down-hill paths, which is dangerous in winter because of the snow. The last route goes along the same coastal road as the first route for about 60 kilometres and then turns north-west. The north of City B is more mountainous than that in the south.\n\n4. Which route covers more mountain roads?", "options": ["A. The first route", "B. The second route", "C. The third route", "D. The second and third routes"], "ans": 3, "exp": "D. The second and third routes.", "img": ""},
+    {"q": "There are three routes from City A to City B. The first route goes south along a part of a coastal flat road for about 20 kilometres, and then turns west to the inland, where there is an up-hill path of about 20 kilometres long. After getting down from the hill, go south for about 15 minutes and there it is City B. The second route is the shortest one, by going south-west all along. This route covers several up-hill and down-hill paths, which is dangerous in winter because of the snow. The last route goes along the same coastal road as the first route for about 60 kilometres and then turns north-west. The north of City B is more mountainous than that in the south.\n\n5. Which route is the longest?", "options": ["A. The first route", "B. The second route", "C. The third route", "D. None of the above"], "ans": 2, "exp": "C. The third route.", "img": ""},
+    {"q": "There are three routes from City A to City B. The first route goes south along a part of a coastal flat road for about 20 kilometres, and then turns west to the inland, where there is an up-hill path of about 20 kilometres long. After getting down from the hill, go south for about 15 minutes and there it is City B. The second route is the shortest one, by going south-west all along. This route covers several up-hill and down-hill paths, which is dangerous in winter because of the snow. The last route goes along the same coastal road as the first route for about 60 kilometres and then turns north-west. The north of City B is more mountainous than that in the south.\n\n6. There is probably _____ on the northeast of City B?", "options": ["A. A mountain", "B. A sea", "C. A plain", "D. Cannot be determined"], "ans": 0, "exp": "A. A mountain.", "img": ""},
+
+    {"q": "Mr. Wang has three children. Kitty is elder than Tom, and Fiona is younger than the two. Kitty has two sons: Gilbert and Terry. They always play games with their cousins Nick, Ray, Kelvin, Gigi and Lingling. Gigi and Lingling are twins. Kelvin and Ray’s father is Matt. Gilbert likes Matt best because he has plenty of stories to tell. Nick likes his mother Ella and his two younger sisters, and always makes them laugh happily. Nick has a seven-year-old son named Dave, who is the youngest in the family.\n\n7. Gigi is Mr. Wang’s ____", "options": ["A. Great granddaughter", "B. Grandson", "C. Daughter’s daughter", "D. Granddaughter"], "ans": 3, "exp": "D. Granddaughter.", "img": ""},
+    {"q": "Mr. Wang has three children. Kitty is elder than Tom, and Fiona is younger than the two. Kitty has two sons: Gilbert and Terry. They always play games with their cousins Nick, Ray, Kelvin, Gigi and Lingling. Gigi and Lingling are twins. Kelvin and Ray’s father is Matt. Gilbert likes Matt best because he has plenty of stories to tell. Nick likes his mother Ella and his two younger sisters, and always makes them laugh happily. Nick has a seven-year-old son named Dave, who is the youngest in the family.\n\n8. Gigi is Ella’s ____", "options": ["A. Son", "B. Daughter", "C. Nephew", "D. Grandson"], "ans": 1, "exp": "B. Daughter.", "img": ""},
+    {"q": "Mr. Wang has three children. Kitty is elder than Tom, and Fiona is younger than the two. Kitty has two sons: Gilbert and Terry. They always play games with their cousins Nick, Ray, Kelvin, Gigi and Lingling. Gigi and Lingling are twins. Kelvin and Ray’s father is Matt. Gilbert likes Matt best because he has plenty of stories to tell. Nick likes his mother Ella and his two younger sisters, and always makes them laugh happily. Nick has a seven-year-old son named Dave, who is the youngest in the family.\n\n9. Fiona is Terry’s ___", "options": ["A. Maternal aunt", "B. Grandmother", "C. Mother", "D. Sister"], "ans": 0, "exp": "A. Maternal aunt.", "img": ""},
+    {"q": "Mr. Wang has three children. Kitty is elder than Tom, and Fiona is younger than the two. Kitty has two sons: Gilbert and Terry. They always play games with their cousins Nick, Ray, Kelvin, Gigi and Lingling. Gigi and Lingling are twins. Kelvin and Ray’s father is Matt. Gilbert likes Matt best because he has plenty of stories to tell. Nick likes his mother Ella and his two younger sisters, and always makes them laugh happily. Nick has a seven-year-old son named Dave, who is the youngest in the family.\n\n10. Tom is Terry’s____", "options": ["A. Father", "B. Grandfather", "C. Maternal aunt’s husband", "D. Maternal uncle"], "ans": 3, "exp": "D. Maternal uncle.", "img": ""},
+    {"q": "Mr. Wang has three children. Kitty is elder than Tom, and Fiona is younger than the two. Kitty has two sons: Gilbert and Terry. They always play games with their cousins Nick, Ray, Kelvin, Gigi and Lingling. Gigi and Lingling are twins. Kelvin and Ray’s father is Matt. Gilbert likes Matt best because he has plenty of stories to tell. Nick likes his mother Ella and his two younger sisters, and always makes them laugh happily. Nick has a seven-year-old son named Dave, who is the youngest in the family.\n\n11. Tom is Dave’s ____", "options": ["A. Father", "B. Grandfather", "C. Maternal aunt’s husband", "D. Maternal uncle"], "ans": 1, "exp": "B. Grandfather.", "img": ""},
+
+    {"q": "(1) All As and Bs are equivalent to C. (2) All Cs but A are equivalent to B. (3) No A is D. (4) No E is C. (5) All Ds are equivalent to either B or E. (6) No F is B.\n\n12. If all the six sentences above are true, which of the following statements must be true? (1) No E is A. (2) Some Bs are A. (3) Some Bs are D.", "options": ["A. (1)", "B. (1) and (3)", "C. (1), (2) and (3)", "D. (1) and (2)"], "ans": 3, "exp": "D. (1) and (2).", "img": ""},
+    {"q": "(1) All As and Bs are equivalent to C. (2) All Cs but A are equivalent to B. (3) No A is D. (4) No E is C. (5) All Ds are equivalent to either B or E. (6) No F is B.\n\n13. Which of the following statements must be false?", "options": ["A. Some Es are B.", "B. No F is A.", "C. Some Bs are not D.", "D. All Es are D."], "ans": 3, "exp": "D. All Es are D.", "img": ""},
+    {"q": "(1) All As and Bs are equivalent to C. (2) All Cs but A are equivalent to B. (3) No A is D. (4) No E is C. (5) All Ds are equivalent to either B or E. (6) No F is B.\n\n14. Which of the following statements can be directly deduced from the others?", "options": ["A. (6)", "B. (5)", "C. (4)", "D. (3)"], "ans": 2, "exp": "C. (4).", "img": ""},
+    {"q": "(1) All As and Bs are equivalent to C. (2) All Cs but A are equivalent to B. (3) No A is D. (4) No E is C. (5) All Ds are equivalent to either B or E. (6) No F is B.\n\n15. If sentence (2) is false, which of the following statements must be true?", "options": ["A. Some As are not C.", "B. Some Fs are B.", "C. Some Cs are neither A nor B.", "D. Some Bs are A, or some Cs are neither A nor B, or both are correct."], "ans": 3, "exp": "D. Some Bs are A, or some Cs are neither A nor B, or both are correct.", "img": ""},
+
+    {"q": "(1) H results in G or F, but does not result in both at the same time. (2) C occurs only when G occurs. (3) E occurs when G or F occurs. (4) D occurs only when F occurs. (5) J occurs only when D or C occurs. (6) E results in B or A, or results in both at the same time. (7) A occurs when D occurs. (8) B occurs when C occurs.\n\n16. Which of the followings will occur if H occurs? (1) C and B (2) D and A (3) E", "options": ["A. Only (2)", "B. Only (3)", "C. (2) and (3) or (1) and (3)", "D. (1), (2) and (3)"], "ans": 2, "exp": "C. (2) and (3) or (1) and (3).", "img": ""},
+    {"q": "(1) H results in G or F, but does not result in both at the same time. (2) C occurs only when G occurs. (3) E occurs when G or F occurs. (4) D occurs only when F occurs. (5) J occurs only when D or C occurs. (6) E results in B or A, or results in both at the same time. (7) A occurs when D occurs. (8) B occurs when C occurs.\n\n17. If G occurs, which of the followings must also occur?", "options": ["A. J", "B. E", "C. E and B", "D. B and A"], "ans": 1, "exp": "B. E.", "img": ""},
+    {"q": "(1) H results in G or F, but does not result in both at the same time. (2) C occurs only when G occurs. (3) E occurs when G or F occurs. (4) D occurs only when F occurs. (5) J occurs only when D or C occurs. (6) E results in B or A, or results in both at the same time. (7) A occurs when D occurs. (8) B occurs when C occurs.\n\n18. If J occurs, which of the followings must have occurred?", "options": ["A. Either G or F", "B. D and C", "C. G and F", "D. B"], "ans": 0, "exp": "A. Either G or F.", "img": ""},
+    {"q": "(1) H results in G or F, but does not result in both at the same time. (2) C occurs only when G occurs. (3) E occurs when G or F occurs. (4) D occurs only when F occurs. (5) J occurs only when D or C occurs. (6) E results in B or A, or results in both at the same time. (7) A occurs when D occurs. (8) B occurs when C occurs.\n\n19. Which of the followings may be resulted from unmentioned causes? (1) E (2) H (3) C", "options": ["A. Only (2)", "B. Only (3)", "C. Only (1) and (2)", "D. Only (2) and (3)"], "ans": 3, "exp": "D. Only (2) and (3).", "img": ""},
+
+    {"q": "Position A recruits either male applicants aged between 18 and 40 or single female applicants aged between 18 and 35. For male applicants, they should not have any civil servants or employees of radio or TV stations in the nuclear family. This restriction is not applied to female applicants. Position B has the same requirements as Position A, except the specific restriction about nuclear family members for males and about the restriction on marital status for females. Besides, applicants must at least hold a bachelor’s degree.\n\n20. How many different requirements are there between positions A and B for male applicants?", "options": ["A. None", "B. One", "C. Four", "D. Five"], "ans": 1, "exp": "B. One.", "img": ""},
+    {"q": "Position A recruits either male applicants aged between 18 and 40 or single female applicants aged between 18 and 35. For male applicants, they should not have any civil servants or employees of radio or TV stations in the nuclear family. This restriction is not applied to female applicants. Position B has the same requirements as Position A, except the specific restriction about nuclear family members for males and about the restriction on marital status for females. Besides, applicants must at least hold a bachelor’s degree.\n\n21. How many different requirements are there between positions A and B for female applicants?", "options": ["A. None", "B. One", "C. Two", "D. Three"], "ans": 2, "exp": "C. Two.", "img": ""},
+    {"q": "Position A recruits either male applicants aged between 18 and 40 or single female applicants aged between 18 and 35. For male applicants, they should not have any civil servants or employees of radio or TV stations in the nuclear family. This restriction is not applied to female applicants. Position B has the same requirements as Position A, except the specific restriction about nuclear family members for males and about the restriction on marital status for females. Besides, applicants must at least hold a bachelor’s degree.\n\n22. Which position has the largest number of differences in requirements for male and female applicants?", "options": ["A. A", "B. B", "C. The same", "D. Cannot be determined"], "ans": 1, "exp": "A. A.", "img": ""},
+    {"q": "Position A recruits either male applicants aged between 18 and 40 or single female applicants aged between 18 and 35. For male applicants, they should not have any civil servants or employees of radio or TV stations in the nuclear family. This restriction is not applied to female applicants. Position B has the same requirements as Position A, except the specific restriction about nuclear family members for males and about the restriction on marital status for females. Besides, applicants must at least hold a bachelor’s degree.\n\n23. What is the upper age limit for male applicants for position B?", "options": ["A. Thirty-five", "B. Forty", "C. No upper limit", "D. Cannot be determined"], "ans": 1, "exp": "B. Forty.", "img": ""},
+
+    {"q": "Ming, William, Jimmy, Chris and Peter have an average height of 1.76m. Chris is taller than Ming and shorter than Jimmy. Peter is shorter than Jimmy and taller than William. William is shorter than Chris and is the shortest among the five persons.\n\n24. Who is the tallest among the five persons?", "options": ["A. Ming", "B. Jimmy", "C. Chris", "D. Peter"], "ans": 1, "exp": "B. Jimmy.", "img": ""},
+    {"q": "Ming, William, Jimmy, Chris and Peter have an average height of 1.76m. Chris is taller than Ming and shorter than Jimmy. Peter is shorter than Jimmy and taller than William. William is shorter than Chris and is the shortest among the five persons.\n\n25. Ming may not be (1) taller than William (2) taller than Peter", "options": ["A. Only (1) is correct.", "B. Only (2) is correct.", "C. Either (1) or (2) is correct.", "D. Both (1) and (2) are correct."], "ans": 3, "exp": "D. Both (1) and (2) are correct.", "img": ""},
+    {"q": "Ming, William, Jimmy, Chris and Peter have an average height of 1.76m. Chris is taller than Ming and shorter than Jimmy. Peter is shorter than Jimmy and taller than William. William is shorter than Chris and is the shortest among the five persons.\n\n26. If David joins the five persons, and is taller than Peter and shorter than Ming, which of the followings must be true? (1) Chris is taller than David. (2) Ming is taller than Peter.", "options": ["A. Only (1)", "B. Only (2)", "C. Either (1) or (2) is correct.", "D. Both (1) and (2) are correct."], "ans": 3, "exp": "D. Both (1) and (2) are correct.", "img": ""},
+
+    {"q": "Donald is busy on Monday and Tuesday mornings, and the whole Friday. His colleague Keung in Team A is busy on Tuesday afternoons, Thursday and Friday mornings. Bobbie in Team B is free on the whole Monday, Tuesday and Wednesday afternoons as well as Friday afternoons. Fanny and Minnie in Team B are particularly busy on Wednesday afternoons. Except on Wednesday and Thursday, they both work for half a day in weekdays and each responsible for half day work. Saturday and Sunday are holidays.\n\n27. If the two teams are to hold a meeting together and requires at least 2 members from each team to attend the meeting, which of the following time slots is feasible?", "options": ["A. Wednesday afternoon", "B. Monday morning", "C. Thursday morning", "D. Thursday afternoon"], "ans": 3, "exp": "D. Thursday afternoon.", "img": ""},
+    {"q": "Donald is busy on Monday and Tuesday mornings, and the whole Friday. His colleague Keung in Team A is busy on Tuesday afternoons, Thursday and Friday mornings. Bobbie in Team B is free on the whole Monday, Tuesday and Wednesday afternoons as well as Friday afternoons. Fanny and Minnie in Team B are particularly busy on Wednesday afternoons. Except on Wednesday and Thursday, they both work for half a day in weekdays and each responsible for half day work. Saturday and Sunday are holidays.\n\n28. If they require all members from both teams to attend the meeting, which of the following time slots is feasible?", "options": ["A. Wednesday afternoon", "B. Thursday afternoon", "C. Wednesday morning", "D. No time slot is feasible"], "ans": 3, "exp": "D. No time slot is feasible.", "img": ""},
+    {"q": "Donald is busy on Monday and Tuesday mornings, and the whole Friday. His colleague Keung in Team A is busy on Tuesday afternoons, Thursday and Friday mornings. Bobbie in Team B is free on the whole Monday, Tuesday and Wednesday afternoons as well as Friday afternoons. Fanny and Minnie in Team B are particularly busy on Wednesday afternoons. Except on Wednesday and Thursday, they both work for half a day in weekdays and each responsible for half day work. Saturday and Sunday are holidays.\n\n29. If the meeting is held on Monday afternoon, how many members from both teams can attend it?", "options": ["A. Two", "B. Three", "C. Four", "D. Five"], "ans": 2, "exp": "B. Three.", "img": ""},
+    {"q": "Donald is busy on Monday and Tuesday mornings, and the whole Friday. His colleague Keung in Team A is busy on Tuesday afternoons, Thursday and Friday mornings. Bobbie in Team B is free on the whole Monday, Tuesday and Wednesday afternoons as well as Friday afternoons. Fanny and Minnie in Team B are particularly busy on Wednesday afternoons. Except on Wednesday and Thursday, they both work for half a day in weekdays and each responsible for half day work. Saturday and Sunday are holidays.\n\n30. If they require at least two members from each team to attend the meeting, how many feasible time slots are there?", "options": ["A. Two", "B. Three", "C. Four", "D. One"], "ans": 1, "exp": "B. Three.", "img": ""},
+    {"q": "Donald is busy on Monday and Tuesday mornings, and the whole Friday. His colleague Keung in Team A is busy on Tuesday afternoons, Thursday and Friday mornings. Bobbie in Team B is free on the whole Monday, Tuesday and Wednesday afternoons as well as Friday afternoons. Fanny and Minnie in Team B are particularly busy on Wednesday afternoons. Except on Wednesday and Thursday, they both work for half a day in weekdays and each responsible for half day work. Saturday and Sunday are holidays.\n\n31. If they require at least one member from each team to attend the meeting, how many suitable time slots are there?", "options": ["A. Seven", "B. Eight", "C. Nine", "D. Ten"], "ans": 3, "exp": "D. Ten.", "img": ""},
+
+    // === TEXT-ONLY NUMERICAL FROM THIS SUBSET (pure word problems, no charts or diagrams) ===
+    {"q": "2. Given a cardboard of 20cm x 20cm. If the cardboard is rolled into a paper cylinder, its volume will be: (π is the ratio of a circle’s circumference to its diameter)", "options": ["A. 2000/p cm3", "B. 2000π cm3", "C. 8000/p cm3", "D. 8000π cm3"], "ans": 1, "exp": "B. 2000π cm3.", "img": ""},
+    {"q": "3. If B > 4, then in which of the following equations is the value of X the largest?", "options": ["A. X + 4 = B", "B. X – 4 = B", "C. 4X = B", "D. 4/1 X = B"], "ans": 2, "exp": "C. 4X = B.", "img": ""},
+    {"q": "4. Given two double-digit integers A and B, if A–B =58, then the largest possible value of B is:", "options": ["A. -99", "B. -48", "C. 41", "D. 99"], "ans": 1, "exp": "B. -48.", "img": ""},
+    {"q": "5. If X + Y > A, X − Y > B, then which of the followings is true?", "options": ["A. B/X > 0", "B. (A+B)/2X > 0", "C. (A-B)/2Y > 0", "D. Cannot be determined"], "ans": 3, "exp": "D. Cannot be determined.", "img": ""},
+    {"q": "There are some adults and children in an elevator. It is known that there are 50% more children than adults. The average weight of children is 30kg, and the average weight of adults is 80kg.The maximum load of the elevator is 700kg.\n\n6. How many adults are there at most in the elevator?", "options": ["A. 4", "B. 5", "C. 6", "D. Cannot be determined"], "ans": 1, "exp": "B. 5.", "img": ""},
+    {"q": "There are some adults and children in an elevator. It is known that there are 50% more children than adults. The average weight of children is 30kg, and the average weight of adults is 80kg.The maximum load of the elevator is 700kg.\n\n7. How many passengers are there at most in the elevator?", "options": ["A. 10", "B. 13", "C. 14", "D. Cannot be determined"], "ans": 1, "exp": "B. 13.", "img": ""},
+    {"q": "The area of a square wooden board is 400cm². This wooden board is now cut into 4 identical rectangular boards (as shown below).\n\n8. The perimeter of each rectangular wooden board is:", "options": ["A. 40 cm", "B. 48 cm", "C. 50 cm", "D. 60 cm"], "ans": 1, "exp": "B. 48 cm.", "img": ""},
+    {"q": "P and Q walked towards each other from places A and B simultaneously. They continued walking after they met at spot C, and returned to their starting points immediately upon arriving at their destinations. On their returns, they met again at spot D. It is known that the speed of Q is half of that of P, and the distance between spots C and D is 4km.\n\n9. The distance between places A and B is:", "options": ["A. 6 km", "B. 9 km", "C. 12 km", "D. Cannot be determined"], "ans": 2, "exp": "C. 12 km.", "img": ""},
+    {"q": "P and Q walked towards each other from places A and B simultaneously. They continued walking after they met at spot C, and returned to their starting points immediately upon arriving at their destinations. On their returns, they met again at spot D. It is known that the speed of Q is half of that of P, and the distance between spots C and D is 4km.\n\n10. The walking speed of P was:", "options": ["A. 4 km/Hr", "B. 6 km/Hr", "C. 12 km/Hr", "D. Cannot be determined"], "ans": 1, "exp": "B. 6 km/Hr.", "img": ""},
+    {"q": "There are 30 patients who are infected with diseases A or B in a ward in a hospital, and some of them are infected by both diseases. The results of laboratory tests indicated that 18 patients are disease A positive, and 23 patients are disease B positive.\n\n11. How many patients are infected with disease B only?", "options": ["A. 7", "B. 12", "C. 23", "D. Cannot be determined"], "ans": 1, "exp": "B. 12.", "img": ""},
+    {"q": "There are 30 patients who are infected with diseases A or B in a ward in a hospital, and some of them are infected by both diseases. The results of laboratory tests indicated that 18 patients are disease A positive, and 23 patients are disease B positive.\n\n12. How many patients are infected with both diseases A and B?", "options": ["A. 5", "B. 11", "C. 19", "D. Cannot be determined"], "ans": 1, "exp": "B. 11.", "img": ""},
+    {"q": "There are 15 red, 15 yellow and 15 green balls in a box. What is the least number of balls that have to be drawn to ensure that 15 balls of the same color have been drawn?", "options": ["A. 15", "B. 16", "C. 31", "D. 43"], "ans": 3, "exp": "D. 43.", "img": ""},
+    {"q": "If 901 – 63 = X, then, which of the following is true?", "options": ["A. X = 22", "B. X > 22", "C. X < 22", "D. Cannot be determined"], "ans": 1, "exp": "B. X > 22.", "img": ""},
+    {"q": "If 147 × 258 = 148 × 257 – A, then, A = ?", "options": ["A. -110", "B. 1", "C. 10", "D. 110"], "ans": 3, "exp": "D. 110.", "img": ""},
+    {"q": "Hospital A has admitted a certain number of patients. If each ward holds 8 patients, there will be 30 patients that cannot be settled. If each ward holds 10 patients, there will be 3 unoccupied wards left.\n\n22. How many patients has Hospital A admitted?", "options": ["A. 30", "B. 120", "C. 270", "D. 330"], "ans": 3, "exp": "D. 330.", "img": ""},
+    {"q": "Hospital A has admitted a certain number of patients. If each ward holds 8 patients, there will be 30 patients that cannot be settled. If each ward holds 10 patients, there will be 3 unoccupied wards left.\n\n23. How many wards are there in Hospital A?", "options": ["A. 6", "B. 9", "C. 15", "D. 30"], "ans": 2, "exp": "C. 15.", "img": ""},
+    {"q": "Hospital A has admitted a certain number of patients. If each ward holds 8 patients, there will be 30 patients that cannot be settled. If each ward holds 10 patients, there will be 3 unoccupied wards left.\n\n24. According to the number of patients staying at Hospital A now, the average number of patients occupying each ward should be:", "options": ["A. 8", "B. 9", "C. 10", "D. 11"], "ans": 2, "exp": "C. 10.", "img": ""},
+    {"q": "A sailing boat sailed between places A and B. The trip took 4 hours from A to B when the boat sailed with the wind. On its return, it took 6 hours when it sailed against the wind. The wind velocity is known to be 5km/Hr.\n\n29. The speed of the sailing boat was:", "options": ["A. 20 km/Hr", "B. 25 km/Hr", "C. 30 km/Hr", "D. Cannot be determined"], "ans": 1, "exp": "B. 25 km/Hr.", "img": ""},
+    {"q": "A sailing boat sailed between places A and B. The trip took 4 hours from A to B when the boat sailed with the wind. On its return, it took 6 hours when it sailed against the wind. The wind velocity is known to be 5km/Hr.\n\n30. The distance between places A and B is:", "options": ["A. 120 km", "B. 125 km", "C. 150 km", "D. Cannot be determined"], "ans": 1, "exp": "B. 125 km.", "img": ""},
+
+    // === END OF ALL IMAGE-FREE QUESTIONS FROM ALL DOCUMENTS ===
+];
+
+    let currentQuestions = [];
+    const questionsPerQuiz = 20;
+
+    window.onload = () => {
+        document.getElementById('dbInfo').innerText = `題庫總數: ${allQuestions.length} 題`;
+        generateNewQuiz();
+    };
+
+    function generateNewQuiz() {
+        const form = document.getElementById('quizForm');
+        form.innerHTML = '';
+        document.getElementById('scoreDisplay').innerHTML = '未作答...';
+        document.getElementById('scoreDisplay').style.backgroundColor = '#ecf0f1';
+        document.getElementById('scoreDisplay').style.color = '#2c3e50';
+
+        // Shuffle and pick
+        const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+        currentQuestions = shuffled.slice(0, questionsPerQuiz);
+
+        currentQuestions.forEach((qObj, index) => {
+            const block = document.createElement('div');
+            block.className = 'question-block';
+            block.id = `qblock_${index}`;
+
+            const title = document.createElement('div');
+            title.className = 'question-title';
+            title.innerText = `Q${index + 1}. ${qObj.q}`;
+            block.appendChild(title);
+
+            // Insert image if exists
+            if(qObj.img) {
+                const img = document.createElement('img');
+                img.src = qObj.img;
+                img.className = 'question-img';
+                block.appendChild(img);
+            }
+
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'options';
+
+            qObj.options.forEach((optText, optIndex) => {
+                const label = document.createElement('label');
+                label.id = `label_${index}_${optIndex}`;
+
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = `q${index}`;
+                input.value = optIndex;
+
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(" " + optText));
+                optionsDiv.appendChild(label);
+            });
+
+            block.appendChild(optionsDiv);
+
+            const expDiv = document.createElement('div');
+            expDiv.className = 'explanation';
+            expDiv.id = `exp_${index}`;
+            expDiv.innerHTML = `<strong>💡 答案與解析：</strong><br>${qObj.exp}`;
+            block.appendChild(expDiv);
+
+            form.appendChild(block);
+        });
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function checkAnswers() {
+        let score = 0;
+        let answeredAll = true;
+
+        currentQuestions.forEach((qObj, index) => {
+            const selected = document.querySelector(`input[name="q${index}"]:checked`);
+            const expDiv = document.getElementById(`exp_${index}`);
+
+            expDiv.style.display = 'block';
+
+            const correctLabel = document.getElementById(`label_${index}_${qObj.ans}`);
+            correctLabel.classList.add('correct');
+
+            if (selected) {
+                const selectedVal = parseInt(selected.value);
+                if (selectedVal === qObj.ans) {
+                    score++;
+                } else {
+                    const wrongLabel = document.getElementById(`label_${index}_${selectedVal}`);
+                    wrongLabel.classList.add('incorrect');
+                }
+            } else {
+                answeredAll = false;
+            }
+
+            const inputs = document.querySelectorAll(`input[name="q${index}"]`);
+            inputs.forEach(input => input.disabled = true);
+        });
+
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        if (!answeredAll) {
+            scoreDisplay.style.color = '#856404';
+            scoreDisplay.style.backgroundColor = '#ffeeba';
+            scoreDisplay.innerHTML = `⚠️ 未答完！得 ${score} 分`;
+        } else {
+            const pass = score >= (currentQuestions.length * 0.75);
+            scoreDisplay.style.color = pass ? '#155724' : '#721c24';
+            scoreDisplay.style.backgroundColor = pass ? '#d4edda' : '#f8d7da';
+            scoreDisplay.innerHTML = `🎯 總分: ${score} / ${currentQuestions.length}`;
+        }
+    }
+
+    function resetQuiz() {
+        document.getElementById('scoreDisplay').innerHTML = '未作答...';
+        document.getElementById('scoreDisplay').style.backgroundColor = '#ecf0f1';
+        document.getElementById('scoreDisplay').style.color = '#2c3e50';
+
+        currentQuestions.forEach((qObj, index) => {
+            const inputs = document.querySelectorAll(`input[name="q${index}"]`);
+            inputs.forEach(input => {
+                input.checked = false;
+                input.disabled = false;
+            });
+
+            qObj.options.forEach((_, optIndex) => {
+                const label = document.getElementById(`label_${index}_${optIndex}`);
+                label.classList.remove('correct');
+                label.classList.remove('incorrect');
+            });
+
+            document.getElementById(`exp_${index}`).style.display = 'none';
+        });
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function newButtonAction() {
+    // Replace this with what you actually want the button to do
+    window.location.href = "index.html";}
+
+</script>
+
+</body>
+</html>
